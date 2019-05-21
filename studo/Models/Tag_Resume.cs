@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace studo.Models
+{
+    public class Tag_Resume
+    {
+        public Guid TagId { get; set; }
+
+        public Guid ResumeId { get; set; }
+    }
+}
