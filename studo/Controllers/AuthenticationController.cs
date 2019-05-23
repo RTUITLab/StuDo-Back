@@ -51,9 +51,8 @@ namespace studo.Controllers
             await userManager.AddToRoleAsync(user, RolesConstants.User);
             logger.LogDebug($"User {user.Email} was created and added to role - {RolesConstants.User}");
 
-            var loginResponse = GetLoginResponseAsync(user);
             if (result.Succeeded)
-                return Ok(loginResponse);
+                return Ok();
             else
             {
                 logger.LogError($"Result of creating user with email {user.Email} is {result}");

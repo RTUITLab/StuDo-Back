@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -12,6 +13,7 @@ using studo.Models.Requests.Authentication;
 
 namespace studo.Pages.Authentication
 {
+    [AllowAnonymous]
     public class SignUpModel : PageModel
     {
         [BindProperty]
@@ -30,6 +32,7 @@ namespace studo.Pages.Authentication
         {
             if (!ModelState.IsValid || string.IsNullOrEmpty(userRegistrationRequest.Password) || !await FindUserAsync())
             {
+                ModelState.AddModelError(nameof(userRegistrationRequest.Email), $"User with '{userRegistrationRequest.Email}' email is already exist");
                 return Page();
             }
 
@@ -42,6 +45,8 @@ namespace studo.Pages.Authentication
             if (result.Succeeded)
                 return RedirectToPage("/Index");
             else
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError(string.Empty, error.Description);
                 return Page();
         }
 
@@ -53,7 +58,6 @@ namespace studo.Pages.Authentication
                 return await Task.FromResult(true);
             else
                 return await Task.FromResult(false);
-
         }
     }
 }
