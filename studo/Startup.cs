@@ -60,7 +60,7 @@ namespace studo
                         ValidateAudience = true,
                         // setting consumer token
                         ValidAudience = jwtOptions.Audience,
-                        // будет ли валидироваться время существования
+                        // do we need to validate time of existence
                         ValidateLifetime = true,
 
                         // setting security key
@@ -92,7 +92,8 @@ namespace studo
                 .AddDefaultTokenProviders();
 
             services.AddWebAppConfigure()
-                .AddTransientConfigure<FillDb>(Configuration.GetValue<bool>("FILL_DB"));
+                .AddTransientConfigure<FillDb>(Configuration.GetValue<bool>("FILL_DB"))
+                .AddTransientConfigure<ApplyMigration>(Configuration.GetValue<bool>("MIGRATE"));
 
             // it'll automatically scan for classes which inherit from "Profile"
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -104,6 +105,7 @@ namespace studo
                      .AddAuthenticationSchemes("Bearer")
                      .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
+                options.MaxModelValidationErrors = 50;
             }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
         }

@@ -36,7 +36,6 @@ namespace studo.Services
             if (adToEdit == null)
                 return null;
 
-            //adToEdit = mapper.Map<Ad>(adEditRequest);
             mapper.Map(adEditRequest, adToEdit);
 
             await dbContext.SaveChangesAsync();

@@ -77,12 +77,12 @@ namespace studo.Controllers
 
         private async Task<LoginResponse> GetLoginResponseAsync(User user)
         {
-            var userRole = await userManager.GetRolesAsync(user);
+            var userRoles = await userManager.GetRolesAsync(user);
 
             return new LoginResponse
             {
                 User = mapper.Map<UserView>(user),
-                AccessToken = jwtFactory.GenerateAccessToken(user.Id, userRole)
+                AccessToken = jwtFactory.GenerateAccessToken(user.Id, userRoles)
             };
         }
 

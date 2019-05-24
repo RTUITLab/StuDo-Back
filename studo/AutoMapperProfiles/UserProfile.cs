@@ -12,7 +12,6 @@ namespace studo.AutoMapperProfiles
         {
             CreateMap<UserRegistrationRequest, User>();
             CreateMap<User, UserView>();
-
         }
     }
 }
