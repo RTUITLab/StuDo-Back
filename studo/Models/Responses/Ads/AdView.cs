@@ -7,6 +7,7 @@ namespace studo.Models.Responses.Ads
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public string ShortDescription { get; set; }
 
         public DateTime BeginTime { get; set; }
         public DateTime EndTime { get; set; }
