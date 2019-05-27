@@ -47,7 +47,7 @@ namespace studo.Pages.Authentication
             else
                 foreach (var error in result.Errors)
                     ModelState.AddModelError(string.Empty, error.Description);
-                return Page();
+            return Page();
         }
 
         // return true if user with this Email doesn't exist

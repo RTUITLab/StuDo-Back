@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
@@ -11,6 +12,7 @@ using studo.Models.Responses.Authentication;
 using studo.Models.Responses.Users;
 using studo.Services.Autorize;
 using studo.Services.Configure;
+using studo.Services.Interfaces;
 
 namespace studo.Controllers
 {
@@ -22,14 +24,16 @@ namespace studo.Controllers
         private readonly IMapper mapper;
         private readonly ILogger<AuthenticationController> logger;
         private readonly IJwtFactory jwtFactory;
+        private readonly IEmailSender emailSender;
 
         public AuthenticationController(UserManager<User> userManager, IMapper mapper,
-            ILogger<AuthenticationController> logger, IJwtFactory jwtFactory)
+            ILogger<AuthenticationController> logger, IJwtFactory jwtFactory, IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.mapper = mapper;
             this.logger = logger;
             this.jwtFactory = jwtFactory;
+            this.emailSender = emailSender;
         }
 
         [AllowAnonymous]
@@ -43,7 +47,6 @@ namespace studo.Controllers
                 return BadRequest("User with this email exists");
 
             user = mapper.Map<User>(userRegistrationRequest);
-            user.EmailConfirmed = true;
             user.UserName = user.Email;
 
             var result = await userManager.CreateAsync(user, userRegistrationRequest.Password);
@@ -54,7 +57,19 @@ namespace studo.Controllers
             logger.LogDebug($"User {user.Email} was created and added to role - {RolesConstants.User}");
 
             if (result.Succeeded)
+            {
+                var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                var callbackUrl = Url.Page(
+                    "/Account/ConfirmEmail",
+                    pageHandler: null,
+                    values: new { userId = user.Id, token = emailConfirmationToken },
+                    protocol: Request.Scheme);
+
+                await emailSender.SendEmailConfirmationAsync(user.Email, "Confirm your email",
+                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
                 return Ok();
+            }
             else
             {
                 logger.LogError($"Result of creating user with email {user.Email} is {result}");
@@ -75,9 +90,6 @@ namespace studo.Controllers
 
             if (!await userManager.CheckPasswordAsync(user, userLoginRequest.Password))
                 return BadRequest($"Incorrect password");
-
-            if (!user.EmailConfirmed)
-                return BadRequest($"Email {user.Email} isn't confirmed");
 
             var loginResponse = await GetLoginResponseAsync(user);
             return Ok(loginResponse);

@@ -43,6 +43,7 @@ namespace studo
             // add options to project
             services.Configure<FillDbOptions>(Configuration.GetSection(nameof(FillDbOptions)));
             services.Configure<JwtOptions>(Configuration.GetSection(nameof(JwtOptions)));
+            services.Configure<EmailSenderOptions>(Configuration.GetSection(nameof(EmailSenderOptions)));
 
             // 
             var jwtOptions = Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
@@ -73,6 +74,7 @@ namespace studo
 
             services.AddTransient<IJwtFactory, JwtFactory>();
             services.AddTransient<IAdManager, AdManager>();
+            services.AddTransient<studo.Services.Interfaces.IEmailSender, EmailSender>();
 
             // add database context
             string connection = Configuration.GetConnectionString("DefaultConnection");
