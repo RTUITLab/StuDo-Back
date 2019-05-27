@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using studo.Data;
 using studo.Models;
 using studo.Models.Requests.Ads;
@@ -13,21 +15,43 @@ namespace studo.Services
     {
         private readonly DatabaseContext dbContext;
         private readonly IMapper mapper;
+        private readonly UserManager<User> userManager;
 
         public IQueryable<Ad> Ads => dbContext.Ads;
 
-        public AdManager(DatabaseContext dbContext, IMapper mapper)
+        public AdManager(DatabaseContext dbContext, IMapper mapper,
+            UserManager<User> userManager)
         {
             this.dbContext = dbContext;
             this.mapper = mapper;
+            this.userManager = userManager;
         }
 
         public async Task<IQueryable<Ad>> AddAsync(AdCreateRequest adCreateRequest)
         {
             var newAd = mapper.Map<Ad>(adCreateRequest);
+
+            if (newAd.OrganizationId.HasValue)
+            {
+                var creator = await dbContext.Organizations.FindAsync(newAd.OrganizationId.Value.ToString());
+                newAd.Organization = creator;
+            }
+            else
+            {
+                var creator = await userManager.FindByIdAsync(newAd.UserId.Value.ToString());
+                newAd.User = creator;
+            }
+            
+
+            //var creator = newAd.UserId.HasValue ? await userManager.FindByIdAsync(newAd.UserId.Value.ToString()) :
+            //    await dbContext.Organizations.FindAsync(newAd.OrganizationId.Value.ToString());
+
             await dbContext.Ads.AddAsync(newAd);
             await dbContext.SaveChangesAsync();
-            return dbContext.Ads.Where(ad => ad.Id == newAd.Id);
+            return dbContext.Ads
+                .Include(ad => ad.User)
+                .Include(ad => ad.Organization)
+                .Where(ad => ad.Id == newAd.Id);
         }
 
         public async Task<IQueryable<Ad>> EditAsync(AdEditRequest adEditRequest)

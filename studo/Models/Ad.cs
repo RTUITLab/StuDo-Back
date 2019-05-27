@@ -12,7 +12,9 @@ namespace studo.Models
         public DateTime BeginTime { get; set; }
         public DateTime EndTime { get; set; }
 
-        public Guid CreatorId { get; set; }
-        public CreatorType CreatorType { get; set; }
+        public Guid? UserId { get; set; }
+        public User User { get; set; }
+        public Guid? OrganizationId { get; set; }
+        public Organization Organization { get; set; }
     }
 }

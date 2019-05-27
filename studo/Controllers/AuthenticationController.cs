@@ -36,6 +36,8 @@ namespace studo.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationRequest userRegistrationRequest)
         {
+            //userManager.Generate
+
             var user = await userManager.FindByEmailAsync(userRegistrationRequest.Email);
             if (user != null)
                 return BadRequest("User with this email exists");
@@ -62,14 +64,20 @@ namespace studo.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> LoginAsync([FromBody] UserLoginRequest userLoginRequest)
+        public async Task<ActionResult<LoginResponse>> LoginAsync([FromBody] UserLoginRequest userLoginRequest)
         {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
             var user = await userManager.FindByEmailAsync(userLoginRequest.Email);
             if (user == null)
                 return NotFound($"Can't find user with email {userLoginRequest.Email}");
 
             if (!await userManager.CheckPasswordAsync(user, userLoginRequest.Password))
                 return BadRequest($"Incorrect password");
+
+            if (!user.EmailConfirmed)
+                return BadRequest($"Email {user.Email} isn't confirmed");
 
             var loginResponse = await GetLoginResponseAsync(user);
             return Ok(loginResponse);

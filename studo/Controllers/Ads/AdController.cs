@@ -32,21 +32,32 @@ namespace studo.Controllers.Ads
         }
 
         [HttpGet]
-        public async Task<IEnumerable<CompactAdView>> GetAdsAsync()
+        public async Task<ActionResult<IEnumerable<CompactAdView>>> GetAdsAsync()
             => await adManager.Ads.OrderByDescending(ad => ad.EndTime)
                 .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
                 .ToListAsync();
 
         [Authorize(Roles = "admin")]
         [HttpPost]
-        public async Task<AdView> CreateAdAsync([FromBody] AdCreateRequest adCreateRequest)
-            => await (await adManager.AddAsync(adCreateRequest))
+        public async Task<ActionResult<AdView>> CreateAdAsync([FromBody] AdCreateRequest adCreateRequest)
+        {
+            if (adCreateRequest == null)
+                return BadRequest("No data inside");
+
+            if (!adCreateRequest.UserId.HasValue && !adCreateRequest.OrganizationId.HasValue ||
+                adCreateRequest.UserId.HasValue && adCreateRequest.OrganizationId.HasValue)
+                return BadRequest("No creator or more than one creator");
+
+            AdView newAd = await (await adManager.AddAsync(adCreateRequest))
                 .ProjectTo<AdView>(mapper.ConfigurationProvider)
                 .SingleAsync();
 
+            return Ok(newAd);
+        }
+
         [Authorize(Roles = "admin")]
         [HttpPut]
-        public async Task<IActionResult> EditAdAsync([FromBody] AdEditRequest adEditRequest)
+        public async Task<ActionResult<AdView>> EditAdAsync([FromBody] AdEditRequest adEditRequest)
         {
             var editedAd = await adManager.EditAsync(adEditRequest);
             if (editedAd == null)
@@ -60,14 +71,14 @@ namespace studo.Controllers.Ads
         [Authorize(Roles = "admin")]
         [HttpDelete]
         [Route("{adId:guid}")]
-        public async Task<IActionResult> DeleteAdAsync(Guid adId)
+        public async Task<ActionResult<Guid>> DeleteAdAsync(Guid adId)
         {
             await adManager.DeleteAsync(adId);
-            return Ok();
+            return Ok(adId);
         }
 
         [HttpGet("{adId:guid}")]
-        public async Task<AdView> GetAdAsync(Guid adId)
+        public async Task<ActionResult<AdView>> GetAdAsync(Guid adId)
             => await adManager.Ads
             .ProjectTo<AdView>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(ad => ad.Id == adId);

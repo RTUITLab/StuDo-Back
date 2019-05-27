@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using studo.Services.Autorize;
 using studo.Services;
 using studo.Services.Interfaces;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace studo
 {
@@ -87,9 +88,15 @@ namespace studo
                     identityOptions.Password.RequireUppercase = false;
                     identityOptions.Password.RequireNonAlphanumeric = false;
                     identityOptions.Password.RequiredLength = 6;
+                    identityOptions.SignIn.RequireConfirmedEmail = true;
                 })
                 .AddEntityFrameworkStores<DatabaseContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new Info { Title = "IT Lab develop API", Version = "v1" });
+            });
 
             services.AddWebAppConfigure()
                 .AddTransientConfigure<FillDb>(Configuration.GetValue<bool>("FILL_DB"))
@@ -122,8 +129,17 @@ namespace studo
                 app.UseExceptionHandler("/Error");
             }
 
+            app.UseSwagger(c => { c.RouteTemplate = "api/{documentName}/swagger.json"; });
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/api/v1/swagger.json", "My API V1");
+                c.RoutePrefix = "api";
+            });
+
             app.UseWebAppConfigure(); // locks the app, while function isn't completed
             app.UseAuthentication();
+
+
 
             app.UseStaticFiles();
 

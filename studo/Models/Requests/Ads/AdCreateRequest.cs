@@ -17,9 +17,7 @@ namespace studo.Models.Requests.Ads
         [Required]
         public DateTime EndTime { get; set; }
 
-        [Required]
-        public Guid CreatorId { get; set; }
-        [Required]
-        public CreatorType CreatorType { get; set; }
+        public Guid? UserId { get; set; }
+        public Guid? OrganizationId { get; set; }
     }
 }
