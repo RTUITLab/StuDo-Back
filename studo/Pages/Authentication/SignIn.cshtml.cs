@@ -36,14 +36,12 @@ namespace studo.Pages.Authentication
             {
                 ModelState.AddModelError(nameof(userLoginRequest.Email), "Incorrect email");
                 return Page();
-                //throw new Exception("Incorrect email");
             }
 
             if (!await _manager.CheckPasswordAsync(user, userLoginRequest.Password))
             {
                 ModelState.AddModelError(nameof(userLoginRequest.Password), "Incorrect password");
                 return Page();
-                //throw new Exception("Incorrect password");
             }
 
             return RedirectToPage("/Index");

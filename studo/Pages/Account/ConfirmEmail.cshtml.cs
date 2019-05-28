@@ -20,6 +20,11 @@ namespace studo.Pages.Account
             this.userManager = userManager;
         }
 
+        //public Task<IActionResult> OnGet()
+        //{
+        //    return NotFound();
+        //}
+
         public async Task<IActionResult> OnGetAsync (string userId, string token)
         {
             if (!ModelState.IsValid)
