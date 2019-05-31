@@ -58,9 +58,9 @@ namespace studo.Controllers
             {
                 var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
                 var callbackUrl = Url.Page(
-                    "/Account/ConfirmEmail",
+                    $"/Account/ConfirmEmail",
                     pageHandler: null,
-                    values: new { userId = user.Id, token = emailConfirmationToken },
+                    values: new { userId = user.Id, token = emailConfirmationToken},
                     protocol: Request.Scheme);
 
                 await emailSender.SendEmailConfirmationAsync(user.Email, "Confirm your email",
@@ -70,7 +70,10 @@ namespace studo.Controllers
             }
             else
             {
-                logger.LogError($"Result of creating user with email {user.Email} is {result}");
+                foreach (var er in result.Errors)
+                {
+                    logger.LogError($"Result of creating user with email {user.Email} is {er}");
+                }
                 throw new Exception($"Result of creating user with email {user.Email} is {result}");
             }
         }

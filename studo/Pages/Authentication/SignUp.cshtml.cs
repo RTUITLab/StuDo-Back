@@ -19,17 +19,18 @@ namespace studo.Pages.Authentication
         [BindProperty]
         public UserRegistrationRequest userRegistrationRequest { get; set; }
 
-        private readonly UserManager<User> manager;
+        private readonly UserManager<User> userManager;
         private readonly IMapper mapper;
 
-        public SignUpModel(UserManager<User> manager, IMapper mapper)
+        public SignUpModel(UserManager<User> userManager, IMapper mapper)
         {
-            this.manager = manager;
+            this.userManager = userManager;
             this.mapper = mapper;
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
+            // TODO: email sending
             if (!ModelState.IsValid || string.IsNullOrEmpty(userRegistrationRequest.Password) || !await FindUserAsync())
             {
                 ModelState.AddModelError(nameof(userRegistrationRequest.Email), $"User with '{userRegistrationRequest.Email}' email is already exist");
@@ -38,9 +39,8 @@ namespace studo.Pages.Authentication
 
             var user = mapper.Map<User>(userRegistrationRequest);
 
-            user.EmailConfirmed = true;
             user.UserName = user.Email;
-            var result = await manager.CreateAsync(user, userRegistrationRequest.Password);
+            var result = await userManager.CreateAsync(user, userRegistrationRequest.Password);
 
             if (result.Succeeded)
                 return RedirectToPage("/Index");
@@ -53,7 +53,7 @@ namespace studo.Pages.Authentication
         // return true if user with this Email doesn't exist
         private async Task<bool> FindUserAsync()
         {
-            var user = await manager.FindByEmailAsync(userRegistrationRequest.Email);
+            var user = await userManager.FindByEmailAsync(userRegistrationRequest.Email);
             if (user == null)
                 return await Task.FromResult(true);
             else

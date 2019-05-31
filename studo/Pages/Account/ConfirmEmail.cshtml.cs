@@ -15,27 +15,32 @@ namespace studo.Pages.Account
     {
         private readonly UserManager<User> userManager;
 
+        //[BindProperty(SupportsGet = true)]
+        //public Guid UserId { get; set; }
+
+        //[BindProperty(SupportsGet = true)]
+        //public string Token { get; set; }
+
         public ConfirmEmailModel(UserManager<User> userManager)
         {
             this.userManager = userManager;
         }
 
-        //public Task<IActionResult> OnGet()
-        //{
-        //    return NotFound();
-        //}
-
         public async Task<IActionResult> OnGetAsync (string userId, string token)
         {
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+                return NotFound();
+
             if (!ModelState.IsValid)
                 return Page();
 
-            var user = await userManager.FindByIdAsync(userId);
+            var user = await userManager.FindByIdAsync(userId.ToString());
             if (user == null)
                 return BadRequest("User is null");
 
             var result = await userManager.ConfirmEmailAsync(user, token);
             if (result.Succeeded)
+                // TODO: redirect to page "You have confirmed your email -> Login now"
                 return RedirectToPage("/Index");
             else
             {
