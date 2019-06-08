@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace studo.Services
@@ -19,7 +20,19 @@ namespace studo.Services
             this.options = options.Value;
         }
 
-        public async Task SendEmailConfirmationAsync(string email, string subject, string message)
+        public async Task SendEmailConfirmationAsync(string email, string redirectUrl)
+        {
+            var message = $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(redirectUrl)}'>clicking here</a>.";
+            await SendEmailAsync(email, "Confirm your email", message);
+        }
+
+        public async Task SendResetPasswordEmail(string email, string redirectUrl)
+        {
+            var message = $"Please click <a href='{HtmlEncoder.Default.Encode(redirectUrl)}'>here</a> to reset your password";
+            await SendEmailAsync(email, "Reset password", message);
+        }
+
+        public async Task SendEmailAsync(string email, string subject, string message)
         {
             MailMessage mailMessage = new MailMessage
             {
@@ -39,11 +52,6 @@ namespace studo.Services
             };
 
             await smtpClient.SendMailAsync(mailMessage);
-        }
-
-        public async Task SendResetPasswordEmail(string email, string resetPasswordToken)
-        {
-            throw new NotImplementedException();
         }
     }
 }

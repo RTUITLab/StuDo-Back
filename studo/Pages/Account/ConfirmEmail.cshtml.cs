@@ -34,7 +34,7 @@ namespace studo.Pages.Account
             if (!ModelState.IsValid)
                 return Page();
 
-            var user = await userManager.FindByIdAsync(userId.ToString());
+            var user = await userManager.FindByIdAsync(userId);
             if (user == null)
                 return BadRequest("User is null");
 

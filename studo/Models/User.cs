@@ -11,5 +11,7 @@ namespace studo.Models
         public string Surname { get; set; }
 
         public List<Ad> Ads { get; set; }
+
+        public List<Resume> Resumes { get; set; }
     }
 }

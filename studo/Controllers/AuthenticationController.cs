@@ -58,13 +58,12 @@ namespace studo.Controllers
             {
                 var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
                 var callbackUrl = Url.Page(
-                    $"/Account/ConfirmEmail",
+                    "/Account/ConfirmEmail",
                     pageHandler: null,
                     values: new { userId = user.Id, token = emailConfirmationToken},
                     protocol: Request.Scheme);
 
-                await emailSender.SendEmailConfirmationAsync(user.Email, "Confirm your email",
-                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                await emailSender.SendEmailConfirmationAsync(user.Email, callbackUrl);
 
                 return Ok();
             }

@@ -70,7 +70,8 @@ namespace studo
                         // validation of security key
                         ValidateIssuerSigningKey = true,
                     };
-                });
+                })
+                .AddCookie();
 
             services.AddTransient<IJwtFactory, JwtFactory>();
             services.AddTransient<IAdManager, AdManager>();
@@ -90,10 +91,22 @@ namespace studo
                     identityOptions.Password.RequireUppercase = false;
                     identityOptions.Password.RequireNonAlphanumeric = false;
                     identityOptions.Password.RequiredLength = 6;
+
                     identityOptions.SignIn.RequireConfirmedEmail = true;
+
+                    identityOptions.User.AllowedUserNameCharacters =
+                        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.@+";
                 })
                 .AddEntityFrameworkStores<DatabaseContext>()
                 .AddDefaultTokenProviders();
+
+            // add cookie policy
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
 
             services.AddSwaggerGen(c =>
             {
@@ -140,8 +153,7 @@ namespace studo
 
             app.UseWebAppConfigure(); // locks the app, while function isn't completed
             app.UseAuthentication();
-
-
+            app.UseCookiePolicy();
 
             app.UseStaticFiles();
 

@@ -19,10 +19,12 @@ namespace studo.Pages.Authentication
         public UserLoginRequest userLoginRequest { get; set; }
 
         private readonly UserManager<User> _manager;
+        private readonly SignInManager<User> signInManager;
 
-        public SignInModel(UserManager<User> manager)
+        public SignInModel(UserManager<User> manager, SignInManager<User> signInManager)
         {
             _manager = manager;
+            this.signInManager = signInManager;
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -30,7 +32,6 @@ namespace studo.Pages.Authentication
             if (!ModelState.IsValid)
                 return Page();
 
-            // TODO: reload this page and show an error
             var user = await _manager.FindByEmailAsync(userLoginRequest.Email);
             if (user == null)
             {
@@ -43,6 +44,8 @@ namespace studo.Pages.Authentication
                 ModelState.AddModelError(nameof(userLoginRequest.Password), "Incorrect password");
                 return Page();
             }
+
+            await signInManager.SignInAsync(user, false);
 
             return RedirectToPage("/Index");
         }
