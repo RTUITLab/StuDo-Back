@@ -41,10 +41,6 @@ namespace studo.Services
                 var creator = await userManager.FindByIdAsync(newAd.UserId.Value.ToString());
                 newAd.User = creator;
             }
-            
-
-            //var creator = newAd.UserId.HasValue ? await userManager.FindByIdAsync(newAd.UserId.Value.ToString()) :
-            //    await dbContext.Organizations.FindAsync(newAd.OrganizationId.Value.ToString());
 
             await dbContext.Ads.AddAsync(newAd);
             await dbContext.SaveChangesAsync();
@@ -63,7 +59,10 @@ namespace studo.Services
             mapper.Map(adEditRequest, adToEdit);
 
             await dbContext.SaveChangesAsync();
-            return dbContext.Ads.Where(ad => ad.Id == adToEdit.Id);
+            return dbContext.Ads
+                .Include(ad => ad.User)
+                .Include(ad => ad.Organization)
+                .Where(ad => ad.Id == adToEdit.Id);
         }
 
         public async Task DeleteAsync(Guid adId)

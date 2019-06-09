@@ -9,11 +9,11 @@ namespace studo.Data
     {
         public DbSet<Ad> Ads { get; set; }
         public DbSet<Organization> Organizations { get; set; }
+        public DbSet<Resume> Resumes { get; set; }
 
         public DatabaseContext(DbContextOptions options)
             : base (options)
         {
-            //Database.EnsureCreated();
         }
 
         protected override void OnModelCreating(ModelBuilder builder)
@@ -22,6 +22,13 @@ namespace studo.Data
 
             ConfigureAds(builder);
             ConfigureOrganizations(builder);
+            ConfigureResumes(builder);
+        }
+
+        private void ConfigureResumes(ModelBuilder builder)
+        {
+            builder.Entity<Resume>()
+                .HasKey(r => new { r.Id });
         }
 
         private void ConfigureOrganizations(ModelBuilder builder)
