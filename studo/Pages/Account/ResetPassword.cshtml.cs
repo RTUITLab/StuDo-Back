@@ -21,10 +21,12 @@ namespace studo.Pages.Account
         public string NewPassword { get; set; }
         [BindProperty]
         public string NewPasswordConfirm { get; set; }
+        public bool IsOk { get; set; }
 
         public ResetPasswordModel(UserManager<User> userManager)
         {
             this.userManager = userManager;
+            IsOk = false;
         }
 
         public async Task<IActionResult> OnGetAsync(string userId, string token)
@@ -58,7 +60,7 @@ namespace studo.Pages.Account
 
             var result = await userManager.ResetPasswordAsync(user, Token, NewPassword);
             if (result.Succeeded)
-                return RedirectToPage("/Index");
+                IsOk = true;
             else
             {
                 foreach (var error in result.Errors)

@@ -14,16 +14,13 @@ namespace studo.Pages.Account
     public class ConfirmEmailModel : PageModel
     {
         private readonly UserManager<User> userManager;
+        public bool IsOk { get; set; }
 
-        //[BindProperty(SupportsGet = true)]
-        //public Guid UserId { get; set; }
-
-        //[BindProperty(SupportsGet = true)]
-        //public string Token { get; set; }
 
         public ConfirmEmailModel(UserManager<User> userManager)
         {
             this.userManager = userManager;
+            IsOk = false;
         }
 
         public async Task<IActionResult> OnGetAsync (string userId, string token)
@@ -40,8 +37,7 @@ namespace studo.Pages.Account
 
             var result = await userManager.ConfirmEmailAsync(user, token);
             if (result.Succeeded)
-                // TODO: redirect to page "You have confirmed your email -> Login now"
-                return RedirectToPage("/Index");
+                IsOk = true;
             else
             {
                 foreach (var error in result.Errors)
