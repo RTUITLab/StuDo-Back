@@ -99,7 +99,6 @@ namespace studo.Controllers.Users
             await dbContext.SaveChangesAsync();
 
             return Ok(await dbContext.Resumes
-                //.Include(res => res.User)
                 .ProjectTo<ResumeView>(mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(res => res.Id == newResume.Id));
         }
@@ -118,7 +117,6 @@ namespace studo.Controllers.Users
             await dbContext.SaveChangesAsync();
 
             return Ok(await dbContext.Resumes
-                //.Include(res => res.User)
                 .ProjectTo<ResumeView>(mapper.ConfigurationProvider)
                 .FirstOrDefaultAsync(res => res.Id == resumeToEdit.Id));
         }
@@ -142,6 +140,13 @@ namespace studo.Controllers.Users
             => await dbContext.Resumes
             .ProjectTo<ResumeView>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(res => res.Id == resumeId);
+
+        [HttpGet("resume")]
+        public async Task<IEnumerable<ResumeView>> GetAllUsersResumesAsync(Guid userId)
+            => await dbContext.Resumes
+            .Where(res => res.UserId == userId)
+            .ProjectTo<ResumeView>(mapper.ConfigurationProvider)
+            .ToListAsync();
 
         private async Task<User> GetCurrentUser()
             => await userManager.FindByIdAsync(userManager.GetUserId(User));

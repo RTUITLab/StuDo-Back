@@ -37,8 +37,9 @@ namespace studo.Controllers.Ads
                 .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
                 .ToListAsync();
 
-        [Authorize(Roles = "admin")]
         [HttpPost]
+        // TODO: delete field userId and User from create request
+        // check it here like in resume
         public async Task<ActionResult<AdView>> CreateAdAsync([FromBody] AdCreateRequest adCreateRequest)
         {
             if (adCreateRequest == null)
@@ -55,7 +56,6 @@ namespace studo.Controllers.Ads
             return Ok(newAd);
         }
 
-        [Authorize(Roles = "admin")]
         [HttpPut]
         public async Task<ActionResult<AdView>> EditAdAsync([FromBody] AdEditRequest adEditRequest)
         {
