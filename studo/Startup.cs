@@ -25,6 +25,7 @@ using studo.Services.Autorize;
 using studo.Services;
 using studo.Services.Interfaces;
 using Swashbuckle.AspNetCore.Swagger;
+using studo.Filters;
 
 namespace studo
 {
@@ -122,6 +123,7 @@ namespace studo
 
             services.AddMvc(options =>
             {
+                options.Filters.Add<ValidateModelAttribute>();
                 var policy = new AuthorizationPolicyBuilder()
                      .RequireAuthenticatedUser()
                      .AddAuthenticationSchemes("Bearer")
