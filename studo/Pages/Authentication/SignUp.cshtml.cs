@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using studo.Models;
 using studo.Models.Requests.Authentication;
+using studo.Services.Interfaces;
 
 namespace studo.Pages.Authentication
 {
@@ -19,19 +20,27 @@ namespace studo.Pages.Authentication
         [BindProperty]
         public UserRegistrationRequest userRegistrationRequest { get; set; }
 
+        public bool IsCreated { get; set; }
+
         private readonly UserManager<User> userManager;
         private readonly IMapper mapper;
+        private readonly IEmailSender emailSender;
 
-        public SignUpModel(UserManager<User> userManager, IMapper mapper)
+        public SignUpModel(UserManager<User> userManager, IMapper mapper,
+            IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.mapper = mapper;
+            this.emailSender = emailSender;
+            IsCreated = false;
         }
 
         public async Task<IActionResult> OnPostAsync()
         {
-            // TODO: email sending
-            if (!ModelState.IsValid || string.IsNullOrEmpty(userRegistrationRequest.Password) || !await FindUserAsync())
+            if (!ModelState.IsValid)
+                return Page();
+
+            if (!await FindUserAsync())
             {
                 ModelState.AddModelError(nameof(userRegistrationRequest.Email), $"User with '{userRegistrationRequest.Email}' email is already exist");
                 return Page();
@@ -43,7 +52,17 @@ namespace studo.Pages.Authentication
             var result = await userManager.CreateAsync(user, userRegistrationRequest.Password);
 
             if (result.Succeeded)
-                return RedirectToPage("/Index");
+            {
+                var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                var callbackUrl = Url.Page(
+                    "/Account/ConfirmEmail",
+                    pageHandler: null,
+                    values: new { userId = user.Id, token = emailConfirmationToken },
+                    protocol: Request.Scheme);
+                await emailSender.SendEmailConfirmationAsync(user.Email, callbackUrl);
+
+                IsCreated = true;
+            }
             else
                 foreach (var error in result.Errors)
                     ModelState.AddModelError(string.Empty, error.Description);

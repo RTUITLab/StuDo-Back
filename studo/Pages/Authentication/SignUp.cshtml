@@ -27,6 +27,11 @@
         <span asp-validation-for="userRegistrationRequest.Password"></span>
     </div>
     <div class="form-group">
+        <label for="PasswordConfirm" class="control-label">Confrim password</label>
+        <input id="PasswordConfirm" type="password" asp-for="userRegistrationRequest.PasswordConfirm" class="form-control" />
+        <span asp-validation-for="userRegistrationRequest.PasswordConfirm"></span>
+    </div>
+    <div class="form-group">
         <label for="StudentCardNumber" class="control-label">Student card number</label>
         <input id="StudentCardNumber" type="text" asp-for="userRegistrationRequest.StudentCardNumber" class="form-control" />
         <span asp-validation-for="userRegistrationRequest.StudentCardNumber"></span>
@@ -35,4 +40,8 @@
         <input type="submit" value="Sign up" class="btn btn-success" />
     </div>
 </form>
-<!-- TODO: double password -->
+
+@if (Model.IsCreated)
+{
+    <h2>Please check your mailbox to confirm your email</h2>
+}

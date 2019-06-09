@@ -40,6 +40,9 @@ namespace studo.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationRequest userRegistrationRequest)
         {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
             var user = await userManager.FindByEmailAsync(userRegistrationRequest.Email);
             if (user != null)
                 return BadRequest("User with this email exists");
