@@ -1,4 +1,5 @@
-﻿using studo.Models.Responses.Users;
+﻿using studo.Models.Responses.Organization;
+using studo.Models.Responses.Users;
 using System;
 
 namespace studo.Models.Responses.Ads
@@ -16,6 +17,6 @@ namespace studo.Models.Responses.Ads
         public Guid? UserId { get; set; }
         public UserView User { get; set; }
         public Guid? OrganizationId { get; set; }
-        //public Organization Organization { get; set; }
+        public OrganizationView Organization { get; set; }
     }
 }

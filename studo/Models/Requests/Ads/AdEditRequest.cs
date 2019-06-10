@@ -13,8 +13,5 @@ namespace studo.Models.Requests.Ads
 
         public DateTime BeginTime { get; set; }
         public DateTime EndTime { get; set; }
-
-        public Guid? UserId { get; set; }
-        public Guid? OrganizationId { get; set; }
     }
 }

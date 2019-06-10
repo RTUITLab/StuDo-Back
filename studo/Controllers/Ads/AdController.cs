@@ -45,11 +45,14 @@ namespace studo.Controllers.Ads
             if (adCreateRequest == null)
                 return BadRequest("No data inside");
 
-            if (!adCreateRequest.UserId.HasValue && !adCreateRequest.OrganizationId.HasValue ||
-                adCreateRequest.UserId.HasValue && adCreateRequest.OrganizationId.HasValue)
-                return BadRequest("No creator or more than one creator");
+            if (!adCreateRequest.OrganizationId.HasValue)
+                adCreateRequest.UserId = Guid.Parse(userManager.GetUserId(User));
 
-            AdView newAd = await (await adManager.AddAsync(adCreateRequest))
+            var createdAd = await adManager.AddAsync(adCreateRequest);
+            if (createdAd == null)
+                return BadRequest("Can't create ad");
+
+            AdView newAd = await createdAd
                 .ProjectTo<AdView>(mapper.ConfigurationProvider)
                 .SingleAsync();
 
@@ -68,7 +71,6 @@ namespace studo.Controllers.Ads
                 SingleAsync());
         }
 
-        [Authorize(Roles = "admin")]
         [HttpDelete]
         [Route("{adId:guid}")]
         public async Task<ActionResult<Guid>> DeleteAdAsync(Guid adId)
