@@ -71,8 +71,7 @@ namespace studo
                         // validation of security key
                         ValidateIssuerSigningKey = true,
                     };
-                })
-                .AddCookie();
+                });
 
             services.AddTransient<IJwtFactory, JwtFactory>();
             services.AddTransient<IAdManager, AdManager>();
@@ -126,7 +125,7 @@ namespace studo
                 options.Filters.Add<ValidateModelAttribute>();
                 var policy = new AuthorizationPolicyBuilder()
                      .RequireAuthenticatedUser()
-                     .AddAuthenticationSchemes("Bearer")
+                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
                      .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
                 options.MaxModelValidationErrors = 50;

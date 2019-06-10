@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -62,6 +63,14 @@ namespace studo.Controllers.Ads
         [HttpPut]
         public async Task<ActionResult<AdView>> EditAdAsync([FromBody] AdEditRequest adEditRequest)
         {
+            var ad = await adManager.Ads.FirstOrDefaultAsync(ev => ev.Id == adEditRequest.Id);
+            if (ad == null)
+                return BadRequest("Can't find ad");
+
+            var current = await GetCurrentUser();
+            if (current.Id != ad.UserId)
+                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+
             var editedAd = await adManager.EditAsync(adEditRequest);
             if (editedAd == null)
                 return NotFound(adEditRequest);
@@ -75,6 +84,14 @@ namespace studo.Controllers.Ads
         [Route("{adId:guid}")]
         public async Task<ActionResult<Guid>> DeleteAdAsync(Guid adId)
         {
+            var ad = await adManager.Ads.FirstOrDefaultAsync(ev => ev.Id == adId);
+            if (ad == null)
+                return BadRequest("Can't find ad");
+
+            var current = await GetCurrentUser();
+            if (current.Id != ad.UserId)
+                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+
             await adManager.DeleteAsync(adId);
             return Ok(adId);
         }
@@ -84,5 +101,8 @@ namespace studo.Controllers.Ads
             => await adManager.Ads
             .ProjectTo<AdView>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(ad => ad.Id == adId);
+
+        private async Task<User> GetCurrentUser()
+            => await userManager.FindByIdAsync(userManager.GetUserId(User));
     }
 }
