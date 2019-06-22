@@ -10,6 +10,8 @@ namespace studo.Data
         public DbSet<Ad> Ads { get; set; }
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Resume> Resumes { get; set; }
+        public DbSet<OrganizationRight> OrganizationRights { get; set; }
+        public DbSet<UserRightsInOrganiaztion> UserRightsInOrganiaztions { get; set; }
 
         public DatabaseContext(DbContextOptions options)
             : base (options)
@@ -23,6 +25,36 @@ namespace studo.Data
             ConfigureAds(builder);
             ConfigureOrganizations(builder);
             ConfigureResumes(builder);
+            ConfigureOrganizationRights(builder);
+            ConfigureUserOrganization(builder);
+        }
+
+        private void ConfigureUserOrganization(ModelBuilder builder)
+        {
+            builder.Entity<UserRightsInOrganiaztion>()
+                .HasKey(uo => new { uo.UserId, uo.OrganizationId });
+
+            builder.Entity<UserRightsInOrganiaztion>()
+                .HasOne(uo => uo.User)
+                .WithMany(u => u.UserRightsInOrganiaztions)
+                .HasForeignKey(uo => uo.UserId);
+
+            builder.Entity<UserRightsInOrganiaztion>()
+                .HasOne(uo => uo.Organization)
+                .WithMany(o => o.UserRightsInOrganiaztions)
+                .HasForeignKey(uo => uo.OrganizationId);
+
+            builder.Entity<UserRightsInOrganiaztion>()
+                .HasOne(uo => uo.UserOrganizationRight)
+                .WithMany(uor => uor.UserRightsInOrganiaztions)
+                .HasForeignKey(uo => uo.OrganizationRightId);
+
+        }
+
+        private void ConfigureOrganizationRights(ModelBuilder builder)
+        {
+            builder.Entity<OrganizationRight>()
+                .HasKey(or => new { or.Id });
         }
 
         private void ConfigureResumes(ModelBuilder builder)

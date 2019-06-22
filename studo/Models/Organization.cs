@@ -12,6 +12,6 @@ namespace studo.Models
 
         public List<Ad> Ads { get; set; }
 
-        public List<User_Organization> Users { get; set; }
+        public List<UserRightsInOrganiaztion> UserRightsInOrganiaztions { get; set; }
     }
 }

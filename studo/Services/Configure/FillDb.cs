@@ -18,14 +18,17 @@ namespace studo.Services.Configure
         private readonly ILogger<FillDb> logger;
         private readonly UserManager<User> userManager;
         private readonly RoleManager<Role> roleManager;
+        private readonly DatabaseContext dbContext;
 
         public FillDb(IOptions<FillDbOptions> options, ILogger<FillDb> logger,
-            UserManager<User> userManager, RoleManager<Role> roleManager)
+            UserManager<User> userManager, RoleManager<Role> roleManager,
+            DatabaseContext dbContext)
         {
             this.options = options;
             this.logger = logger;
             this.userManager = userManager;
             this.roleManager = roleManager;
+            this.dbContext = dbContext;
         }
 
         public async Task Configure()
@@ -33,6 +36,7 @@ namespace studo.Services.Configure
             await AddDefaultUser();
             await AddRoles();
             await AddRolesToDefaultUser();
+            await AddOrganizationRights();
         }
 
         private async Task AddDefaultUser()
@@ -101,6 +105,28 @@ namespace studo.Services.Configure
             var adminRole = await roleManager.FindByNameAsync(RolesConstants.Admin);
             await userManager.AddToRoleAsync(user, adminRole.Name);
             logger.LogDebug($"To '{user.Email}' was added '{adminRole.Name}' role");
+        }
+
+        private async Task AddOrganizationRights()
+        {
+            if (dbContext.OrganizationRights.Any())
+            {
+                // delete all rights
+                var rights = dbContext.OrganizationRights.ToList();
+                dbContext.OrganizationRights.RemoveRange(rights);
+            }
+
+            var values = Enum.GetValues(typeof(OrganizationRights)).Cast<OrganizationRights>();
+            foreach (var value in values)
+            {
+                var right = new OrganizationRight
+                {
+                    RightName = value.ToString()
+                };
+                dbContext.OrganizationRights.Add(right);
+            }
+
+            await dbContext.SaveChangesAsync();
         }
     }
 }
