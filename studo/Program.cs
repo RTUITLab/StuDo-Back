@@ -7,6 +7,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using studo.Services.Logs;
 
 namespace studo
 {
@@ -20,6 +21,7 @@ namespace studo
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration(cfg => cfg.AddJsonFile("appsettings.Secret.json"))
+                .ConfigureLogging(cfg => cfg.AddProvider(new WebSocketLoggerProvider()))
                 .UseStartup<Startup>();
     }
 }

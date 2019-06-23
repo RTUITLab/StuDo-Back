@@ -48,7 +48,6 @@ namespace studo.Data
                 .HasOne(uo => uo.UserOrganizationRight)
                 .WithMany(uor => uor.UserRightsInOrganiaztions)
                 .HasForeignKey(uo => uo.OrganizationRightId);
-
         }
 
         private void ConfigureOrganizationRights(ModelBuilder builder)

@@ -26,6 +26,8 @@ using studo.Services;
 using studo.Services.Interfaces;
 using Swashbuckle.AspNetCore.Swagger;
 using studo.Filters;
+using studo.Middlewares;
+using studo.Services.Logs;
 
 namespace studo
 {
@@ -46,7 +48,7 @@ namespace studo
             services.Configure<JwtOptions>(Configuration.GetSection(nameof(JwtOptions)));
             services.Configure<EmailSenderOptions>(Configuration.GetSection(nameof(EmailSenderOptions)));
 
-            // 
+            // JWT configuration
             var jwtOptions = Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -75,7 +77,8 @@ namespace studo
 
             services.AddTransient<IJwtFactory, JwtFactory>();
             services.AddTransient<IAdManager, AdManager>();
-            services.AddTransient<studo.Services.Interfaces.IEmailSender, EmailSender>();
+            services.AddTransient<IEmailSender, EmailSender>();
+            services.AddSingleton<ILogsWebSocketHandler>(LogsWebSocketHandler.Instance);
 
             // add database context
             string connection = Configuration.GetConnectionString("DefaultConnection");
@@ -110,7 +113,7 @@ namespace studo
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new Info { Title = "IT Lab develop API", Version = "v1" });
+                c.SwaggerDoc("v1", new Info { Title = "StuDo develop API", Version = "v1" });
             });
 
             services.AddWebAppConfigure()
@@ -130,7 +133,6 @@ namespace studo
                 options.Filters.Add(new AuthorizeFilter(policy));
                 options.MaxModelValidationErrors = 50;
             }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -152,12 +154,17 @@ namespace studo
                 c.RoutePrefix = "api";
             });
 
-            app.UseWebAppConfigure(); // locks the app, while function isn't completed
+            app.UseWebSockets();
+
+            var logsOptions = Configuration.GetSection(nameof(LogsOptions)).Get<LogsOptions>();
+            app.UseLogsMiddleware("/api/logsStream", logsOptions.SecretKey);
+
+            app.UseWebAppConfigure(); // locks the app, while functions isn't completed
+
             app.UseAuthentication();
             app.UseCookiePolicy();
 
             app.UseStaticFiles();
-
             app.UseMvc();
         }
     }

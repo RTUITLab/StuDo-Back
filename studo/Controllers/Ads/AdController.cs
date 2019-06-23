@@ -34,9 +34,16 @@ namespace studo.Controllers.Ads
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CompactAdView>>> GetAdsAsync()
-            => await adManager.Ads.OrderByDescending(ad => ad.EndTime)
+        {
+            if (adManager.Ads.Count() == 0)
+                return Ok(new List<CompactAdView>());
+
+            return Ok(
+                await adManager.Ads
+                .OrderByDescending(ad => ad.EndTime)
                 .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
-                .ToListAsync();
+                .ToListAsync());
+        }
 
         [HttpPost]
         // TODO: delete field userId and User from create request

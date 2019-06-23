@@ -260,3 +260,5 @@ paket-files/
 __pycache__/
 *.pyc
 studo/appsettings\.Secret\.json
+
+studo\.LogsViewer/Logs\.Secret\.txt
