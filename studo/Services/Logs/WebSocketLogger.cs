@@ -31,6 +31,7 @@ namespace studo.Services.Logs
             {
                 LogLevel = logLevel,
                 EventId = eventId,
+                Category = category,
                 Message = formatter(state, exception),
                 DateTime = DateTime.UtcNow
             });

@@ -7,10 +7,11 @@ namespace studo.LogsModel
     {
         public LogLevel LogLevel { get; set; }
         public EventId EventId { get; set; }
+        public string Category { get; set; }
         public string Message { get; set; }
         public DateTime DateTime { get; set; }
-        public DateTime DateTimeNormalized =>
-            DateTime.ToLocalTime();
+        public string DateTimeNormalized =>
+            DateTime.ToLocalTime().ToString("d MMM HH:mm:ss");
         public ConsoleColor ForegroundColor
         {
             get
@@ -18,11 +19,11 @@ namespace studo.LogsModel
                 switch (LogLevel)
                 {
                     case LogLevel.Trace:
-                        return ConsoleColor.Gray;
+                        return ConsoleColor.DarkMagenta;
                     case LogLevel.Debug:
-                        return ConsoleColor.Gray;
+                        return ConsoleColor.DarkGray;
                     case LogLevel.Information:
-                        return ConsoleColor.Green;
+                        return ConsoleColor.DarkGreen;
                     case LogLevel.Warning:
                         return ConsoleColor.Yellow;
                     case LogLevel.Error:
@@ -30,9 +31,9 @@ namespace studo.LogsModel
                     case LogLevel.Critical:
                         return ConsoleColor.Red;
                     case LogLevel.None:
-                        return ConsoleColor.Gray;
+                        return ConsoleColor.DarkMagenta;
                     default:
-                        return ConsoleColor.Gray;
+                        return ConsoleColor.DarkMagenta;
                 }
             }
         }

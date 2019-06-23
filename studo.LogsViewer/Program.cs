@@ -39,10 +39,13 @@ namespace studo.LogsViewer
         {
             Console.ForegroundColor = logMessage.ForegroundColor;
             Console.BackgroundColor = ConsoleColor.Black;
-            Console.Write($"{logMessage.LogLevel}: ");
+            Console.Write($"{logMessage.LogLevel}:");
             Console.ResetColor();
-            Console.WriteLine($"{logMessage.EventId.Name}[{logMessage.EventId.Id}]");
-            Console.WriteLine(logMessage.Message);
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.Write(' ' + logMessage.DateTimeNormalized);
+            Console.ResetColor();
+            Console.WriteLine($" {logMessage.Category}[{logMessage.EventId.Id}]");
+            Console.WriteLine('\t' + logMessage.Message.Replace("\n","\n\t"));
         }
     }
 }
