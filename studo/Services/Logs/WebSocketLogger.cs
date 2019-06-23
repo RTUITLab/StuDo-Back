@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using studo.LogsModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,11 +27,12 @@ namespace studo.Services.Logs
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            LogsWebSocketHandler.Instance.SendLogMessage(new
+            LogsWebSocketHandler.Instance.SendLogMessage(new LogMessage
             {
-                logLevel,
-                eventId,
-                message = formatter(state, exception)
+                LogLevel = logLevel,
+                EventId = eventId,
+                Message = formatter(state, exception),
+                DateTime = DateTime.UtcNow
             });
         }
     }

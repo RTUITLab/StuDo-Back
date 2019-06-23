@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using studo.LogsModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,9 +29,9 @@ namespace studo.Services.Logs
             webSockets.Remove(webSocket);
         }
 
-        public void SendLogMessage(object message)
+        public void SendLogMessage(LogMessage logMessage)
         {
-            var strMessage = JsonConvert.SerializeObject(message);
+            var strMessage = JsonConvert.SerializeObject(logMessage);
             foreach (var socket in webSockets)
             {
                 try

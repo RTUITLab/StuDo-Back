@@ -14,6 +14,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\studo.LogsModel\studo.LogsModel.csproj" />
+  </ItemGroup>
+
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1secret_1json__JsonSchema="appsettings.Secret.Schema.json" /></VisualStudio></ProjectExtensions>
 
 </Project>
