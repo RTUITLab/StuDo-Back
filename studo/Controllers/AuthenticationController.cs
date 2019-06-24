@@ -2,6 +2,7 @@
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -64,7 +65,7 @@ namespace studo.Controllers
                     "/Account/ConfirmEmail",
                     pageHandler: null,
                     values: new { userId = user.Id, token = emailConfirmationToken},
-                    protocol: Request.Scheme);
+                    protocol: "https");
 
                 await emailSender.SendEmailConfirmationAsync(user.Email, callbackUrl);
 
@@ -73,9 +74,8 @@ namespace studo.Controllers
             else
             {
                 foreach (var er in result.Errors)
-                {
                     logger.LogError($"Result of creating user with email {user.Email} is {er}");
-                }
+
                 throw new Exception($"Result of creating user with email {user.Email} is {result}");
             }
         }
@@ -109,10 +109,42 @@ namespace studo.Controllers
             };
         }
 
-        [HttpGet("test")]
-        public IActionResult Test()
+        [Authorize(Roles = RolesConstants.Admin)]
+        [HttpDelete("{userEmail}")]
+        public async Task<ActionResult<string>> DeleteUserAsync(string userEmail)
         {
-            return Content("Hello world");
+            var user = await userManager.FindByEmailAsync(userEmail);
+            if (user == null)
+                return NotFound(userEmail);
+
+            if (user.EmailConfirmed)
+            {
+                logger.LogError($"{userEmail} email is 'confirmed'");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+            }
+
+            if (user.Ads != null && user.Ads.Count > 0)
+            {
+                logger.LogError($"{userEmail} Ads count - {user.Ads.Count}");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+            }
+
+            if (user.UserRightsInOrganiaztions != null && user.UserRightsInOrganiaztions.Count > 0)
+            {
+                logger.LogError($"{userEmail} UserRightsInOrganizations count - {user.UserRightsInOrganiaztions.Count}");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+            }
+
+            var result = await userManager.DeleteAsync(user);
+            if (result.Succeeded)
+                return Ok(userEmail);
+            else
+            {
+                foreach (var er in result.Errors)
+                    logger.LogError($"Result of deleting user with email {user.Email} is {er}");
+
+                throw new Exception($"Result of deletign user with email {user.Email} is {result}");
+            }
         }
     }
 }
