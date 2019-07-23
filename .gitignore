@@ -262,3 +262,5 @@ __pycache__/
 studo/appsettings\.Secret\.json
 
 studo\.LogsViewer/Logs\.Secret\.txt
+
+studo/Logs/
