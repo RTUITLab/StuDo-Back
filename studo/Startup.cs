@@ -99,6 +99,8 @@ namespace studo
 
                     identityOptions.User.AllowedUserNameCharacters =
                         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.@+";
+
+                    identityOptions.User.RequireUniqueEmail = true;
                 })
                 .AddEntityFrameworkStores<DatabaseContext>()
                 .AddDefaultTokenProviders();

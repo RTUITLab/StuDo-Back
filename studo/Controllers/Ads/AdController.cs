@@ -96,7 +96,7 @@ namespace studo.Controllers.Ads
                 return BadRequest("Can't find ad");
 
             var current = await GetCurrentUser();
-            if (current.Id != ad.UserId)
+            if (current.Id != ad.UserId.Value)
                 return Forbid(JwtBearerDefaults.AuthenticationScheme);
 
             await adManager.DeleteAsync(adId);
