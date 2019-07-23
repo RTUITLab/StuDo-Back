@@ -28,6 +28,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using studo.Filters;
 using studo.Middlewares;
 using studo.Services.Logs;
+using Serilog;
 
 namespace studo
 {
@@ -148,6 +149,8 @@ namespace studo
             {
                 app.UseExceptionHandler("/Error");
             }
+
+            //app.UseSerilogRequestLogging();
 
             app.UseSwagger(c => { c.RouteTemplate = "api/{documentName}/swagger.json"; });
             app.UseSwaggerUI(c =>

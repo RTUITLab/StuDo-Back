@@ -17,15 +17,6 @@ namespace studo
     {
         public static void Main(string[] args)
         {
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Debug()
-                //.MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Information)
-                .WriteTo.File(rollingInterval: RollingInterval.Month,
-                    path: "Logs\\log-.txt",
-                    outputTemplate: "{Timestamp:d MMM HH:mm:ss} {Level:w3}] {Message:lj}{NewLine}{Exception}")
-                .CreateLogger();
-
             try
             {
                 Log.Information("Starting web host");
@@ -51,6 +42,7 @@ namespace studo
                     cfg.AddProvider(new WebSocketLoggerProvider());
                 })
                 .UseStartup<Startup>()
-                .UseSerilog();
+                .UseSerilog((hostingContext, loggerConfiguration) =>
+                 loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration));
     }
 }
