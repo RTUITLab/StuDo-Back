@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using Serilog.Sinks.SystemConsole.Themes;
 using studo.Services.Logs;
 
 namespace studo
@@ -17,20 +18,8 @@ namespace studo
     {
         public static void Main(string[] args)
         {
-            try
-            {
-                Log.Information("Starting web host");
-                CreateWebHostBuilder(args).Build().Run();
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Host terminated unexpectedly");
-                throw;
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
+            var host = CreateWebHostBuilder(args).Build();
+            host.Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
@@ -38,11 +27,22 @@ namespace studo
                 .ConfigureAppConfiguration(cfg => cfg.AddJsonFile("appsettings.Secret.json"))
                 .ConfigureLogging(cfg =>
                 {
-                    cfg.ClearProviders();
+                    //cfg.ClearProviders();
                     cfg.AddProvider(new WebSocketLoggerProvider());
                 })
                 .UseStartup<Startup>()
-                .UseSerilog((hostingContext, loggerConfiguration) =>
-                 loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration));
+                .UseSerilog((context, configuration) =>
+                {
+                    configuration
+                        .MinimumLevel.Debug()
+                        .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                        .Enrich.FromLogContext()
+                        .WriteTo.File(path: "Logs\\log-.txt",
+                            rollingInterval: RollingInterval.Month,
+                            outputTemplate: "{Timestamp:d MMM HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
+                        .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
+                            theme: AnsiConsoleTheme.Literate);
+                        //.WriteTo.Providers(new WebSocketLoggerProvider());
+                });
     }
 }
