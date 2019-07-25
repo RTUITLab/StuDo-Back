@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -28,7 +25,6 @@ using Swashbuckle.AspNetCore.Swagger;
 using studo.Filters;
 using studo.Middlewares;
 using studo.Services.Logs;
-using Serilog;
 
 namespace studo
 {
@@ -48,6 +44,7 @@ namespace studo
             services.Configure<FillDbOptions>(Configuration.GetSection(nameof(FillDbOptions)));
             services.Configure<JwtOptions>(Configuration.GetSection(nameof(JwtOptions)));
             services.Configure<EmailSenderOptions>(Configuration.GetSection(nameof(EmailSenderOptions)));
+            services.Configure<LogsOptions>(Configuration.GetSection(nameof(LogsOptions)));
 
             // JWT configuration
             var jwtOptions = Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
@@ -149,8 +146,6 @@ namespace studo
             {
                 app.UseExceptionHandler("/Error");
             }
-
-            //app.UseSerilogRequestLogging();
 
             app.UseSwagger(c => { c.RouteTemplate = "api/{documentName}/swagger.json"; });
             app.UseSwaggerUI(c =>
