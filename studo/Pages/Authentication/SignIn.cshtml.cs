@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -45,7 +48,18 @@ namespace studo.Pages.Authentication
                 return Page();
             }
 
-            await signInManager.SignInAsync(user, false);
+            //await signInManager.PasswordSignInAsync(user, userLoginRequest.Password, isPersistent: false, lockoutOnFailure: true);
+            //await signInManager.SignInAsync(user, false);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            };
+            var userRoles = await _manager.GetRolesAsync(user);
+            claims.AddRange(userRoles.Select(name => new Claim(ClaimTypes.Role, name)));
+
+            ClaimsIdentity id = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
 
             return RedirectToPage("/Index");
         }

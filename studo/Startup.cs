@@ -28,6 +28,7 @@ using Swashbuckle.AspNetCore.Swagger;
 using studo.Filters;
 using studo.Middlewares;
 using studo.Services.Logs;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace studo
 {
@@ -47,6 +48,14 @@ namespace studo
             services.Configure<FillDbOptions>(Configuration.GetSection(nameof(FillDbOptions)));
             services.Configure<JwtOptions>(Configuration.GetSection(nameof(JwtOptions)));
             services.Configure<EmailSenderOptions>(Configuration.GetSection(nameof(EmailSenderOptions)));
+
+            // cookie configuration
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
 
             // JWT configuration
             var jwtOptions = Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
@@ -105,14 +114,20 @@ namespace studo
                 .AddEntityFrameworkStores<DatabaseContext>()
                 .AddDefaultTokenProviders();
 
-            // add cookie policy
-            services.Configure<CookiePolicyOptions>(options =>
-            {
-                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
-                options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
-            });
+            // add cookie authentication
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    // Cookie settings
+                    options.Cookie.HttpOnly = true;
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
 
+                    options.LoginPath = "/Authentication/SignIn";
+                    //options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+                    options.SlidingExpiration = true;
+                });
+
+            // swagger configuration
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "StuDo develop API", Version = "v1" });
@@ -130,7 +145,7 @@ namespace studo
                 options.Filters.Add<ValidateModelAttribute>();
                 var policy = new AuthorizationPolicyBuilder()
                      .RequireAuthenticatedUser()
-                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme)
                      .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
                 options.MaxModelValidationErrors = 50;
@@ -163,8 +178,8 @@ namespace studo
 
             app.UseWebAppConfigure(); // locks the app, while functions isn't completed
 
-            app.UseAuthentication();
             app.UseCookiePolicy();
+            app.UseAuthentication();
 
             app.UseStaticFiles();
             app.UseMvc();

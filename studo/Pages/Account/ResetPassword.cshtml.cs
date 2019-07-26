@@ -15,7 +15,7 @@ namespace studo.Pages.Account
     {
         private readonly UserManager<User> userManager;
         private static string Token;
-        private static User User;
+        private static new User User;
 
         [BindProperty]
         public string NewPassword { get; set; }
