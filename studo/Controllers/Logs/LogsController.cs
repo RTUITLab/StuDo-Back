@@ -30,18 +30,18 @@ namespace studo.Controllers.Logs
             if (!System.IO.File.Exists(path))
                 return NotFound(dateTime);
 
-            var temp = new MemoryStream();
-
+            var ms = new MemoryStream();
             using (var sourceStream = System.IO.File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var provider = new AesCryptoServiceProvider())
             using (var cryptoTransform = provider.CreateEncryptor())
-            using (var cryptoStream = new CryptoStream(temp, cryptoTransform, CryptoStreamMode.Write, true))
+            using (var cryptoStream = new CryptoStream(ms, cryptoTransform, CryptoStreamMode.Write))
             {
-                temp.Write(provider.IV, 0, provider.IV.Length);
+                // TODO: change provider.Key to my key (options.SecurityKey)
+                ms.Write(provider.IV, 0, provider.IV.Length);
                 await sourceStream.CopyToAsync(cryptoStream);
             }
-            temp.Position = 0;
-            return File(temp, "text/plain", "");
+            var textPlain = ms.ToArray();
+            return File(textPlain, "text/plain", $"{options.LogsFilesName}{normalizedDate}{options.LogsFilesExtensions}");
         }
     }
 }
