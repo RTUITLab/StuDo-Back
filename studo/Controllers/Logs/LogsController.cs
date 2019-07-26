@@ -30,29 +30,18 @@ namespace studo.Controllers.Logs
             if (!System.IO.File.Exists(path))
                 return NotFound(dateTime);
 
-            var destinationFilename = "";
-            
+            var temp = new MemoryStream();
+
             using (var sourceStream = System.IO.File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-            using (var destinationStream = System.IO.File.Create(destinationFilename))
             using (var provider = new AesCryptoServiceProvider())
             using (var cryptoTransform = provider.CreateEncryptor())
-            using (var cryptoStream = new CryptoStream(destinationStream, cryptoTransform, CryptoStreamMode.Write))
+            using (var cryptoStream = new CryptoStream(temp, cryptoTransform, CryptoStreamMode.Write, true))
             {
-                destinationStream.Write(provider.IV, 0, provider.IV.Length);
-                sourceStream.CopyTo(cryptoStream);
+                temp.Write(provider.IV, 0, provider.IV.Length);
+                await sourceStream.CopyToAsync(cryptoStream);
             }
-
-            // TODO: NOT TO CREATE FILE
-
-            var memory = new MemoryStream();
-            using (var stream = new FileStream(destinationFilename, FileMode.Open))
-            {
-                await stream.CopyToAsync(memory);
-            }
-            memory.Position = 0;
-            return File(memory, "text/plain", Path.GetFileName(destinationFilename));
-
-            //return File(virtualPath: destinationFilename, contentType: "text/plain");
+            temp.Position = 0;
+            return File(temp, "text/plain", "");
         }
     }
 }
