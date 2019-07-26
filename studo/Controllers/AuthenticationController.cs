@@ -84,12 +84,12 @@ namespace studo.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponse>> LoginAsync([FromBody] UserLoginRequest userLoginRequest)
         {
-            if (!ModelState.IsValid)
-                return BadRequest();
-
             var user = await userManager.FindByEmailAsync(userLoginRequest.Email);
             if (user == null)
                 return NotFound($"Can't find user with email {userLoginRequest.Email}");
+
+            if (!user.EmailConfirmed)
+                return BadRequest("User's email isn't confirmed");
 
             if (!await userManager.CheckPasswordAsync(user, userLoginRequest.Password))
                 return BadRequest($"Incorrect password");
