@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -46,8 +45,6 @@ namespace studo.Controllers.Ads
         }
 
         [HttpPost]
-        // TODO: delete field userId and User from create request
-        // check it here like in resume
         public async Task<ActionResult<AdView>> CreateAdAsync([FromBody] AdCreateRequest adCreateRequest)
         {
             if (adCreateRequest == null)
@@ -75,7 +72,7 @@ namespace studo.Controllers.Ads
                 return BadRequest("Can't find ad");
 
             var current = await GetCurrentUser();
-            if (current.Id != ad.UserId)
+            if (current.Id != ad.UserId.Value)
                 return Forbid(JwtBearerDefaults.AuthenticationScheme);
 
             var editedAd = await adManager.EditAsync(adEditRequest);
