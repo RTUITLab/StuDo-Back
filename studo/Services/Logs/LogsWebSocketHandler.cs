@@ -2,7 +2,6 @@
 using studo.LogsModel;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
@@ -38,12 +37,8 @@ namespace studo.Services.Logs
                 {
                     socket.SendAsync(Encoding.UTF8.GetBytes(strMessage), WebSocketMessageType.Text, true, CancellationToken.None);
                 }
-                catch (Exception ex)
-                {
-
-                }
+                catch (Exception) { }
             }
-
         }
     }
 }

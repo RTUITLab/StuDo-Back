@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -48,6 +45,7 @@ namespace studo
             services.Configure<FillDbOptions>(Configuration.GetSection(nameof(FillDbOptions)));
             services.Configure<JwtOptions>(Configuration.GetSection(nameof(JwtOptions)));
             services.Configure<EmailSenderOptions>(Configuration.GetSection(nameof(EmailSenderOptions)));
+            services.Configure<LogsOptions>(Configuration.GetSection(nameof(LogsOptions)));
 
             // cookie configuration
             services.Configure<CookiePolicyOptions>(options =>

@@ -3,12 +3,12 @@ using System.IO;
 
 namespace studo.LogsViewer
 {
-    class LogsOptions
+    class WebSocketsOptions
     {
         public string SecretKey { get; }
         public string Url { get; }
 
-        public LogsOptions(string fileName)
+        public WebSocketsOptions(string fileName)
         {
             string[] lines = File.ReadAllLines(fileName);
 
