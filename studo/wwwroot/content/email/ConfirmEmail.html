@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <style type="text/css">
+    .headerInfo{
+        background: #0077BF;
+    }
+    .qq{
+        border: 1px solid black;
+    }
+    .headerInfo img{
+        margin-top: 10px;
+        margin-bottom: 10px;
+
+    }
+
+    #navbar {
+        padding-left: 20px;
+        font-size: 20px;
+        margin: 70px;
+
+        list-style-type: none;
+    }
+    #navbar li {
+        display: inline;
+    }
+    #navbar a {
+        color: #fff;
+        padding: 5px 10px;
+        margin-left: 25px;
+        text-decoration: none;
+        font-weight: bold;
+        display: inline-block;
+
+    }
+    #navbar a:hover {
+        border-radius: 20px 5px;
+        color: #0077BF;
+        background: white;
+    }
+    .mainBlock{
+        margin-top: 40px;
+        text-align: center;
+    }
+    .mainBlock button{
+        margin-top: 10px;
+        font-size: 20px;
+    }
+    .fooInfo{
+        color: #939393;
+        font-size: 15px;
+        text-align: center;
+
+        margin: 20px auto;
+    }
+
+    @media screen and (max-width: 320px) {
+        .btn{
+            width: 300px;
+
+        }
+        .textBut{
+            font-size: 12px;
+        }
+        #navbar {
+
+            margin: 20px auto;
+
+            font-size: 14px;
+            list-style-type: none;
+        }
+    }
+    @media screen and (max-width: 415px) and (min-width: 330px){
+        #navbar {
+
+            margin: 20px auto;
+
+            font-size: 14px;
+            list-style-type: none;
+        }
+        .btn{
+            width: 340px;
+
+        }
+        .textBut{
+            font-size: 15px;
+        }
+    }
+    @media screen and (min-width: 768px) and (max-width: 790px) {
+        #navbar {
+            
+            margin: 60px auto;
+            padding-left: 100px;
+            font-size: 14px;
+            list-style-type: none;
+        }
+        .btn{
+            width: 340px;
+
+        }
+        .textBut{
+            font-size: 15px;
+        }
+    }
+    </style>
+</head>
+<body>
+<header>
+
+       <div class="row headerInfo ">
+           <div class="container d-flex">
+           <div class="col-md-2">
+
+               <img src="https://www.mirea.ru/upload/medialibrary/80f/MIREA_Gerb_Colour.png" height="140" width="126"/></div>
+           <div class="col-md-10">
+               <ul id="navbar">
+                   <li><a href="#">Главная</a></li>
+                   <li><a href="#">Новости</a></li>
+                   <li><a href="#">Контакты</a></li>
+                   <li><a href="#">О нас</a></li>
+               </ul>
+           </div>
+       </div>
+   </div>
+</header>
+<section>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="mainBlock">
+                    <h1>Мы рады, что Вы здесь!</h1>
+                    <button class="btn btn-success">
+                    <span class="textBut">Подтвердите Ваш адресс электронной почты</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="fooInfo">
+
+                Мы всего лишь хотим подтвердить, что вы это вы.<br>
+                Если вы не создавали аккаунт в коворкинге,<br>
+                просто удалите это письмо и всё останется так, как есть.
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+</body>
+</html>
