@@ -10,6 +10,8 @@
 
         public string LogsFilesExtensions { get; set; }
 
-        public string SecurityKey { get; set; }
+        public string CryptKey { get; set; }
+
+        public string CryptIV { get; set; }
     }
 }

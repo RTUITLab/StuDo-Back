@@ -7,6 +7,7 @@ namespace studo.Decryptor
 {
     class Program
     {
+        private const string secretFilename = "Decryptor.Secret.txt";
         static void Main(string[] args)
         {
             if (args.Length != 1)
@@ -17,26 +18,23 @@ namespace studo.Decryptor
 
             if (!File.Exists(args[0]))
             {
-                Console.WriteLine("File doesn't exist");
+                Console.WriteLine("File doesn't exist!");
                 Console.WriteLine(args[0]);
                 return;
             }
 
             var path = args[0];
-            byte[] key = null; // TODO: create secret file with content - key
 
-            var newPath = path;
-            var name = Path.GetFileName(newPath);
+            var name = Path.GetFileName(path);
             var name2 = name.Split('.');
-            newPath = newPath.Replace(name, name2[0] + " (1)." + name2[1]);
+            var newPath = path.Replace(name, name2[0] + " (1)." + name2[1]);
 
             using (var sourceStream = File.OpenRead(path))
             using (var destinationStream = File.Create(newPath))
             using (var provider = new AesCryptoServiceProvider())
             {
-                var IV = new byte[provider.IV.Length];
-                sourceStream.Read(IV, 0, IV.Length);
-                using (var cryptoTransform = provider.CreateDecryptor(key, IV))
+                var decryptorOptions = new DecryptorOptions(secretFilename);
+                using (var cryptoTransform = provider.CreateDecryptor(decryptorOptions.Key, decryptorOptions.IV))
                 using (var cryptoStream = new CryptoStream(sourceStream, cryptoTransform, CryptoStreamMode.Read))
                 {
                     cryptoStream.CopyTo(destinationStream);

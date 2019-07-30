@@ -33,11 +33,11 @@ namespace studo.Controllers.Logs
             var ms = new MemoryStream();
             using (var sourceStream = System.IO.File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             using (var provider = new AesCryptoServiceProvider())
-            using (var cryptoTransform = provider.CreateEncryptor())
+            using (var cryptoTransform = provider.CreateEncryptor( // init encryptor with my key and IV
+                                                  Convert.FromBase64String(options.CryptKey),
+                                                  Convert.FromBase64String(options.CryptIV)))
             using (var cryptoStream = new CryptoStream(ms, cryptoTransform, CryptoStreamMode.Write))
             {
-                // TODO: change provider.Key to my key (options.SecurityKey)
-                ms.Write(provider.IV, 0, provider.IV.Length);
                 await sourceStream.CopyToAsync(cryptoStream);
             }
             var textPlain = ms.ToArray();

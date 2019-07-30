@@ -10,14 +10,15 @@ namespace studo.LogsViewer
 {
     class Program
     {
-        private const string secretFileName = "Logs.Secret.txt";
+        private const string secretFilename = "WebSockets.Secret.txt";
+
         static async Task Main(string[] args)
         {
             var wsClient = new ClientWebSocket();
-            var logsOptions = new LogsOptions(secretFileName);
+            var webSocketsOptions = new WebSocketsOptions(secretFilename);
 
-            wsClient.Options.SetRequestHeader("Authorization", logsOptions.SecretKey);
-            await wsClient.ConnectAsync(new Uri(logsOptions.Url), CancellationToken.None);
+            wsClient.Options.SetRequestHeader("Authorization", webSocketsOptions.SecretKey);
+            await wsClient.ConnectAsync(new Uri(webSocketsOptions.Url), CancellationToken.None);
 
             var array = new byte[1024];
             Console.WriteLine("Ready to listen\n");
