@@ -67,7 +67,7 @@ namespace studo.Pages.Authentication
             ClaimsIdentity id = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
 
-            return RedirectToPage("/Index");
+            return LocalRedirect(returnUrl);
         }
     }
 }

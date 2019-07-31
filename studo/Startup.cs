@@ -177,9 +177,9 @@ namespace studo
             app.UseWebAppConfigure(); // locks the app, while functions isn't completed
 
             app.UseStaticFiles();
-            app.UseCookiePolicy();
-
             app.UseAuthentication();
+
+            app.UseCookiePolicy();
             app.UseMvc();
         }
     }
