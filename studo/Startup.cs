@@ -117,9 +117,8 @@ namespace studo
                 .AddCookie(options =>
                 {
                     // Cookie settings
-                    //options.Cookie.HttpOnly = true;
+                    options.Cookie.HttpOnly = true;
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
-                    options.Cookie.Expiration = TimeSpan.FromMinutes(5);
 
                     options.LoginPath = "/Authentication/SignIn";
                     //options.AccessDeniedPath = "/Identity/Account/AccessDenied";
