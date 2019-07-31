@@ -263,8 +263,7 @@ studo/appsettings\.Secret\.json
 
 studo\.LogsViewer/Logs\.Secret\.txt
 
-studo/Logs/
-
 studo\.Decryptor/Decryptor\.Secret\.txt
 
 studo\.LogsViewer/WebSockets\.Secret\.txt
+/studo/Logs/log-201907.txt
