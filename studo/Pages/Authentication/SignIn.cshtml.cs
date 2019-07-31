@@ -30,8 +30,10 @@ namespace studo.Pages.Authentication
             this.signInManager = signInManager;
         }
 
-        public async Task<IActionResult> OnPostAsync()
+        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
         {
+            returnUrl = returnUrl ?? Url.Content("~/");
+
             if (!ModelState.IsValid)
                 return Page();
 
@@ -48,18 +50,22 @@ namespace studo.Pages.Authentication
                 return Page();
             }
 
-            //await signInManager.PasswordSignInAsync(user, userLoginRequest.Password, isPersistent: false, lockoutOnFailure: true);
+            var result = await signInManager.PasswordSignInAsync(user, userLoginRequest.Password, isPersistent: true, lockoutOnFailure: true);
+            if (result.Succeeded)
+            {
+                return LocalRedirect(returnUrl);
+            }
             //await signInManager.SignInAsync(user, false);
 
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-            };
-            var userRoles = await _manager.GetRolesAsync(user);
-            claims.AddRange(userRoles.Select(name => new Claim(ClaimTypes.Role, name)));
+            //var claims = new List<Claim>
+            //{
+            //    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            //};
+            //var userRoles = await _manager.GetRolesAsync(user);
+            //claims.AddRange(userRoles.Select(name => new Claim(ClaimTypes.Role, name)));
 
-            ClaimsIdentity id = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
+            //ClaimsIdentity id = new ClaimsIdentity(claims, "ApplicationCookie", ClaimsIdentity.DefaultNameClaimType, ClaimsIdentity.DefaultRoleClaimType);
+            //await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(id));
 
             return RedirectToPage("/Index");
         }

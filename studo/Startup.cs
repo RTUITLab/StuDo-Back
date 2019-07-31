@@ -117,8 +117,9 @@ namespace studo
                 .AddCookie(options =>
                 {
                     // Cookie settings
-                    options.Cookie.HttpOnly = true;
+                    //options.Cookie.HttpOnly = true;
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                    options.Cookie.Expiration = TimeSpan.FromMinutes(5);
 
                     options.LoginPath = "/Authentication/SignIn";
                     //options.AccessDeniedPath = "/Identity/Account/AccessDenied";
@@ -176,10 +177,10 @@ namespace studo
 
             app.UseWebAppConfigure(); // locks the app, while functions isn't completed
 
-            app.UseCookiePolicy();
-            app.UseAuthentication();
-
             app.UseStaticFiles();
+            app.UseCookiePolicy();
+
+            app.UseAuthentication();
             app.UseMvc();
         }
     }

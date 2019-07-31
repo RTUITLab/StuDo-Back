@@ -37,7 +37,7 @@ namespace studo
                         .MinimumLevel.Debug()
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                         .Enrich.FromLogContext()
-                        .WriteTo.File(path: "Logs\\log-.txt",
+                        .WriteTo.File(path: Path.Combine("Logs", "log-.txt"),
                             rollingInterval: RollingInterval.Month,
                             outputTemplate: "{Timestamp:d MMM HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
                         .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
