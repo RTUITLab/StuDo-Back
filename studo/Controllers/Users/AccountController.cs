@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -111,7 +113,7 @@ namespace studo.Controllers.Users
                 return BadRequest(editResumeRequest);
 
             if (await GetCurrentUser() != resumeToEdit.User)
-                return Forbid();
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
 
             mapper.Map(editResumeRequest, resumeToEdit);
             await dbContext.SaveChangesAsync();
@@ -127,7 +129,7 @@ namespace studo.Controllers.Users
             var resumeToDelete = await dbContext.Resumes.FindAsync(resumeId);
 
             if (await GetCurrentUser() != resumeToDelete.User)
-                return Forbid();
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
 
             dbContext.Resumes.Remove(resumeToDelete);
             await dbContext.SaveChangesAsync();

@@ -2,7 +2,7 @@
 
 namespace studo.Models
 {
-    public class UserRightsInOrganiaztion
+    public class UserRightsInOrganization
     {
         public Guid UserId { get; set; }
         public User User { get; set; }

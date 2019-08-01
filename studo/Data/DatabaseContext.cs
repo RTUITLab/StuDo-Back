@@ -11,7 +11,7 @@ namespace studo.Data
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Resume> Resumes { get; set; }
         public DbSet<OrganizationRight> OrganizationRights { get; set; }
-        public DbSet<UserRightsInOrganiaztion> UserRightsInOrganiaztions { get; set; }
+        public DbSet<UserRightsInOrganization> UserRightsInOrganizations { get; set; }
 
         public DatabaseContext(DbContextOptions options)
             : base (options)
@@ -31,22 +31,22 @@ namespace studo.Data
 
         private void ConfigureUserOrganization(ModelBuilder builder)
         {
-            builder.Entity<UserRightsInOrganiaztion>()
+            builder.Entity<UserRightsInOrganization>()
                 .HasKey(uo => new { uo.UserId, uo.OrganizationId });
 
-            builder.Entity<UserRightsInOrganiaztion>()
+            builder.Entity<UserRightsInOrganization>()
                 .HasOne(uo => uo.User)
-                .WithMany(u => u.UserRightsInOrganiaztions)
+                .WithMany(u => u.Organizations)
                 .HasForeignKey(uo => uo.UserId);
 
-            builder.Entity<UserRightsInOrganiaztion>()
+            builder.Entity<UserRightsInOrganization>()
                 .HasOne(uo => uo.Organization)
-                .WithMany(o => o.UserRightsInOrganiaztions)
+                .WithMany(o => o.Users)
                 .HasForeignKey(uo => uo.OrganizationId);
 
-            builder.Entity<UserRightsInOrganiaztion>()
+            builder.Entity<UserRightsInOrganization>()
                 .HasOne(uo => uo.UserOrganizationRight)
-                .WithMany(uor => uor.UserRightsInOrganiaztions)
+                .WithMany(uor => uor.UserRightsInOrganizations)
                 .HasForeignKey(uo => uo.OrganizationRightId);
         }
 

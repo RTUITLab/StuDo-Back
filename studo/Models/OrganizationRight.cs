@@ -7,6 +7,6 @@ namespace studo.Models
     {
         public Guid Id { get; set; }
         public string RightName { get; set; }
-        public List<UserRightsInOrganiaztion> UserRightsInOrganiaztions { get; set; }
+        public List<UserRightsInOrganization> UserRightsInOrganizations { get; set; }
     }
 }

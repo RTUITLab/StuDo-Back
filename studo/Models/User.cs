@@ -14,6 +14,6 @@ namespace studo.Models
 
         public List<Resume> Resumes { get; set; }
 
-        public List<UserRightsInOrganiaztion> UserRightsInOrganiaztions { get; set; }
+        public List<UserRightsInOrganization> Organizations { get; set; }
     }
 }

@@ -20,7 +20,7 @@ namespace studo.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserRightsInOrganiaztions",
+                name: "UserRightsInOrganizations",
                 columns: table => new
                 {
                     UserId = table.Column<Guid>(nullable: false),
@@ -29,21 +29,21 @@ namespace studo.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserRightsInOrganiaztions", x => new { x.UserId, x.OrganizationId });
+                    table.PrimaryKey("PK_UserRightsInOrganizations", x => new { x.UserId, x.OrganizationId });
                     table.ForeignKey(
-                        name: "FK_UserRightsInOrganiaztions_Organizations_OrganizationId",
+                        name: "FK_UserRightsInOrganizations_Organizations_OrganizationId",
                         column: x => x.OrganizationId,
                         principalTable: "Organizations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserRightsInOrganiaztions_OrganizationRights_OrganizationRightId",
+                        name: "FK_UserRightsInOrganizations_OrganizationRights_OrganizationRightId",
                         column: x => x.OrganizationRightId,
                         principalTable: "OrganizationRights",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserRightsInOrganiaztions_AspNetUsers_UserId",
+                        name: "FK_UserRightsInOrganizations_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -51,20 +51,20 @@ namespace studo.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserRightsInOrganiaztions_OrganizationId",
-                table: "UserRightsInOrganiaztions",
+                name: "IX_UserRightsInOrganizations_OrganizationId",
+                table: "UserRightsInOrganizations",
                 column: "OrganizationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserRightsInOrganiaztions_OrganizationRightId",
-                table: "UserRightsInOrganiaztions",
+                name: "IX_UserRightsInOrganizations_OrganizationRightId",
+                table: "UserRightsInOrganizations",
                 column: "OrganizationRightId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "UserRightsInOrganiaztions");
+                name: "UserRightsInOrganizations");
 
             migrationBuilder.DropTable(
                 name: "OrganizationRights");

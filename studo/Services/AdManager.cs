@@ -50,6 +50,8 @@ namespace studo.Services
                 .Where(ad => ad.Id == newAd.Id);
         }
 
+        // TODO: check if user in organization can edit ads
+
         public async Task<IQueryable<Ad>> EditAsync(AdEditRequest adEditRequest)
         {
             var adToEdit = await dbContext.Ads.FindAsync(adEditRequest.Id);

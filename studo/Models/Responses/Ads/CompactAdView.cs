@@ -1,6 +1,4 @@
-﻿using studo.Models.Responses.Organization;
-using studo.Models.Responses.Users;
-using System;
+﻿using System;
 
 namespace studo.Models.Responses.Ads
 {
@@ -13,9 +11,7 @@ namespace studo.Models.Responses.Ads
         public DateTime BeginTime { get; set; }
         public DateTime EndTime { get; set; }
 
-        public Guid? UserId { get; set; }
-        public UserView User { get; set; }
-        public Guid? OrganizationId { get; set; }
-        public OrganizationView Organization { get; set; }
+        public string UserName { get; set; }
+        public string OrganizationName { get; set; }
     }
 }

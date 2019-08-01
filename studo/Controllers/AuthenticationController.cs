@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -25,15 +27,17 @@ namespace studo.Controllers
         private readonly ILogger<AuthenticationController> logger;
         private readonly IJwtFactory jwtFactory;
         private readonly IEmailSender emailSender;
+        private readonly IHostingEnvironment env;
 
         public AuthenticationController(UserManager<User> userManager, IMapper mapper,
-            ILogger<AuthenticationController> logger, IJwtFactory jwtFactory, IEmailSender emailSender)
+            ILogger<AuthenticationController> logger, IJwtFactory jwtFactory, IEmailSender emailSender, IHostingEnvironment env)
         {
             this.userManager = userManager;
             this.mapper = mapper;
             this.logger = logger;
             this.jwtFactory = jwtFactory;
             this.emailSender = emailSender;
+            this.env = env;
         }
 
         [AllowAnonymous]
@@ -112,6 +116,9 @@ namespace studo.Controllers
         [HttpDelete("{userEmail}")]
         public async Task<ActionResult<string>> DeleteUserAsync(string userEmail)
         {
+            if (!env.IsDevelopment())
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+
             var user = await userManager.FindByEmailAsync(userEmail);
             if (user == null)
                 return NotFound(userEmail);
@@ -119,19 +126,19 @@ namespace studo.Controllers
             if (user.EmailConfirmed)
             {
                 logger.LogError($"{userEmail} email is 'confirmed'");
-                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
 
             if (user.Ads != null && user.Ads.Count > 0)
             {
                 logger.LogError($"{userEmail} Ads count - {user.Ads.Count}");
-                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
 
-            if (user.UserRightsInOrganiaztions != null && user.UserRightsInOrganiaztions.Count > 0)
+            if (user.Organizations != null && user.Organizations.Count > 0)
             {
-                logger.LogError($"{userEmail} UserRightsInOrganizations count - {user.UserRightsInOrganiaztions.Count}");
-                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+                logger.LogError($"{userEmail} UserRightsInOrganizations count - {user.Organizations.Count}");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
 
             var result = await userManager.DeleteAsync(user);

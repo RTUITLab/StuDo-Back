@@ -1,8 +1,5 @@
-﻿using studo.Models.Responses.Ads;
+﻿using studo.Models.Responses.Users;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace studo.Models.Responses.Organization
 {
@@ -11,7 +8,8 @@ namespace studo.Models.Responses.Organization
         public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        public List<AdView> Ads { get; set; }
-        //public List<UserRightsInOrganiaztionView> MyProperty { get; set; }
+
+        public Guid CreatorId { get; set; }
+        public UserView Creator { get; set; }
     }
 }

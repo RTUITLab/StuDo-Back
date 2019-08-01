@@ -259,7 +259,7 @@ namespace studo.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
-            modelBuilder.Entity("studo.Models.UserRightsInOrganiaztion", b =>
+            modelBuilder.Entity("studo.Models.UserRightsInOrganization", b =>
                 {
                     b.Property<Guid>("UserId");
 
@@ -273,7 +273,7 @@ namespace studo.Migrations
 
                     b.HasIndex("OrganizationRightId");
 
-                    b.ToTable("UserRightsInOrganiaztions");
+                    b.ToTable("UserRightsInOrganizations");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -340,20 +340,20 @@ namespace studo.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("studo.Models.UserRightsInOrganiaztion", b =>
+            modelBuilder.Entity("studo.Models.UserRightsInOrganization", b =>
                 {
                     b.HasOne("studo.Models.Organization", "Organization")
-                        .WithMany("UserRightsInOrganiaztions")
+                        .WithMany("UserRightsInOrganizations")
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("studo.Models.OrganizationRight", "UserOrganizationRight")
-                        .WithMany("UserRightsInOrganiaztions")
+                        .WithMany("UserRightsInOrganizations")
                         .HasForeignKey("OrganizationRightId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("studo.Models.User", "User")
-                        .WithMany("UserRightsInOrganiaztions")
+                        .WithMany("UserRightsInOrganizations")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });

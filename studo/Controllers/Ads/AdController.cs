@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -73,7 +74,7 @@ namespace studo.Controllers.Ads
 
             var current = await GetCurrentUser();
             if (current.Id != ad.UserId.Value)
-                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
 
             var editedAd = await adManager.EditAsync(adEditRequest);
             if (editedAd == null)
@@ -94,7 +95,7 @@ namespace studo.Controllers.Ads
 
             var current = await GetCurrentUser();
             if (current.Id != ad.UserId.Value)
-                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await adManager.DeleteAsync(adId);
             return Ok(adId);
