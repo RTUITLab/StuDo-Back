@@ -32,6 +32,19 @@ namespace studo.Controllers.Ads
             this.mapper = mapper;
         }
 
+        [HttpGet("user/{userId:guid}")]
+        public async Task<ActionResult<IEnumerable<AdView>>> GetUsersAdsAsync(Guid userId)
+        {
+            var ads = adManager.Ads.Where(ad => ad.UserId.Value == userId);
+            if (ads.Count() == 0)
+                return Ok(new List<AdView>());
+
+            return Ok(
+                await ads
+                .ProjectTo<AdView>(mapper.ConfigurationProvider)
+                .ToListAsync());
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CompactAdView>>> GetAdsAsync()
         {
