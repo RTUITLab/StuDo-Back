@@ -84,6 +84,7 @@ namespace studo
 
             services.AddTransient<IJwtFactory, JwtFactory>();
             services.AddTransient<IAdManager, AdManager>();
+            services.AddTransient<IOrganizationManager, OrganizationManager>();
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddSingleton<ILogsWebSocketHandler>(LogsWebSocketHandler.Instance);
 

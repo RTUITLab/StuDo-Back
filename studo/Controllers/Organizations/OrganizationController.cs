@@ -26,7 +26,7 @@ namespace studo.Controllers.Organizations
         [HttpPost]
         public async Task<ActionResult<OrganizationView>> CreateOrganizationAsync([FromBody] OrganizationCreateRequest organizationCreateRequest)
         {
-
+            throw new NotImplementedException();
         }
     }
 }
