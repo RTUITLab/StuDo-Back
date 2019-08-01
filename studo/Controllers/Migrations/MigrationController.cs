@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using studo.Models.Responses.Migrations;
 using Microsoft.AspNetCore.Authorization;
 using studo.Services.Configure;
+using Newtonsoft.Json;
 
 namespace studo.Controllers.Migrations
 {
@@ -30,6 +31,8 @@ namespace studo.Controllers.Migrations
             migrationsView.Migrations = dbContext.Database.GetMigrations();
             migrationsView.PendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
             migrationsView.AppliedMigrations = await dbContext.Database.GetAppliedMigrationsAsync();
+            logger.LogInformation(JsonConvert.SerializeObject(migrationsView));
+
             return Ok(migrationsView);
         }
     }
