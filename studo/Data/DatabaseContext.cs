@@ -68,9 +68,6 @@ namespace studo.Data
                 .HasKey(org => new { org.Id });
 
             builder.Entity<Organization>()
-                .HasOne(org => org.Name);
-
-            builder.Entity<Organization>()
                 .HasMany(org => org.Ads);
 
             builder.Entity<Organization>()
