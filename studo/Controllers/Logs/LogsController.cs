@@ -22,9 +22,9 @@ namespace studo.Controllers.Logs
 
         [Authorize(Roles = RolesConstants.Admin)]
         [HttpGet("{dateTime:datetime}")]
-        public async Task<IActionResult> GetFileWithLogs(DateTime dateTime)
+        public async Task<ActionResult<FileResult>> GetFileWithLogs(DateTime dateTime)
         {
-            string normalizedDate = dateTime.ToString("yyyyMM");
+            string normalizedDate = dateTime.ToString("yyyyMMdd");
             var path = Path.Combine(Directory.GetCurrentDirectory(), options.PathToFolder, $"{options.LogsFilesName}{normalizedDate}{options.LogsFilesExtensions}");
 
             if (!System.IO.File.Exists(path))

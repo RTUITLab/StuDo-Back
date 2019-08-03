@@ -21,7 +21,7 @@ namespace studo.LogsViewer
             await wsClient.ConnectAsync(new Uri(webSocketsOptions.Url), CancellationToken.None);
 
             var array = new byte[1024];
-            Console.WriteLine("Ready to listen\n");
+            Console.WriteLine($"Ready to listen\t\t{webSocketsOptions.Url}\n");
             while(true)
             {
                 var result = await wsClient.ReceiveAsync(array, CancellationToken.None);
