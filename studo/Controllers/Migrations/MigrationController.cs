@@ -24,6 +24,7 @@ namespace studo.Controllers.Migrations
         }
 
         [Authorize(Roles = RolesConstants.Admin)]
+        [HttpGet]
         public async Task<ActionResult<MigrationsView>> GetLastMigrationId()
         {
             MigrationsView migrationsView = new MigrationsView();
