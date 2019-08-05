@@ -43,6 +43,10 @@ namespace studo.Decryptor
 
             Console.WriteLine($"Visit \"{newPath}\" to see result");
             Process.Start("notepad.exe", newPath);
+            Console.Write("Tap any key to delete file: ");
+            Console.ReadKey();
+            if (File.Exists(newPath))
+                File.Delete(newPath);
         }
     }
 }

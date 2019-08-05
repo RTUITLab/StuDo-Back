@@ -33,13 +33,28 @@ namespace studo.Controllers.Organizations
             this.userManager = userManager;
         }
 
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<OrganizationView>>> GetAllOrganizations()
+        {
+            if (organizationManager.Organizations.Count() == 0)
+                return Ok(new List<OrganizationView>());
+
+            return Ok(
+                await organizationManager.Organizations
+                .ProjectTo<OrganizationView>(mapper.ConfigurationProvider)
+                .ToListAsync());
+        }
+
         [HttpPost]
         public async Task<ActionResult<OrganizationView>> CreateOrganizationAsync([FromBody] OrganizationCreateRequest organizationCreateRequest)
         {
             var current = await GetCurrentUser();
             var createdOrg = await organizationManager.AddAsync(organizationCreateRequest, current);
             if (createdOrg == null)
+            {
+                logger.LogDebug("Created organization = null");
                 return BadRequest();
+            }
 
             OrganizationView newOrg = await createdOrg
                 .ProjectTo<OrganizationView>(mapper.ConfigurationProvider)
