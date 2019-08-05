@@ -12,8 +12,8 @@ namespace studo
 {
     public class Program
     {
+        private static readonly LoggerProviderCollection Providers = new LoggerProviderCollection();
 
-        static readonly LoggerProviderCollection Providers = new LoggerProviderCollection();
         public static void Main(string[] args)
         {
             Providers.AddProvider(new WebSocketLoggerProvider());

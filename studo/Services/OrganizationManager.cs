@@ -1,11 +1,9 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using studo.Data;
 using studo.Models;
 using studo.Models.Requests.Organization;
-using studo.Services.Configure;
 using studo.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -67,8 +65,6 @@ namespace studo.Services
             logger.LogDebug("Save all changes");
 
             return dbContext.Organizations
-                .Include(org => org.Users)
-                .Include(org => org.Ads)
                 .Where(org => org.Id == newOrg.Id);
         }
 

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace studo.Controllers.Logs
 {
+    [Produces("application/json")]
     [Route("api/logs")]
     public class LogsController : Controller
     {
