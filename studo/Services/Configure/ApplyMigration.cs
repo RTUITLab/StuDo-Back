@@ -13,7 +13,7 @@ namespace studo.Services.Configure
         private readonly DatabaseContext dbContext;
         private readonly ILogger<ApplyMigration> logger;
         private int tryCount = 10;
-        private TimeSpan tryPeriod = TimeSpan.FromSeconds(10);
+        private TimeSpan tryPeriod = TimeSpan.FromSeconds(5);
 
         public ApplyMigration(DatabaseContext dbContext, ILogger<ApplyMigration> logger)
         {

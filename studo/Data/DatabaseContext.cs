@@ -11,12 +11,8 @@ namespace studo.Data
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Resume> Resumes { get; set; }
         public DbSet<OrganizationRight> OrganizationRights { get; set; }
-        public DbSet<UserRightsInOrganization> UserRightsInOrganizations { get; set; }
 
-        public DatabaseContext(DbContextOptions options)
-            : base (options)
-        {
-        }
+        public DatabaseContext(DbContextOptions options) : base (options) {}
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -32,7 +28,7 @@ namespace studo.Data
         private void ConfigureUserOrganization(ModelBuilder builder)
         {
             builder.Entity<UserRightsInOrganization>()
-                .HasKey(uo => new { uo.UserId, uo.OrganizationId });
+                .HasKey(uo => new { uo.UserId, uo.OrganizationId, uo.OrganizationRightId });
 
             builder.Entity<UserRightsInOrganization>()
                 .HasOne(uo => uo.User)

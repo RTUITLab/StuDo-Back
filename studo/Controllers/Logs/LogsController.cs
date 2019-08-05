@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace studo.Controllers.Logs
 {
-    [Produces("application/json")]
     [Route("api/logs")]
     public class LogsController : Controller
     {
@@ -22,7 +21,7 @@ namespace studo.Controllers.Logs
 
         [Authorize(Roles = RolesConstants.Admin)]
         [HttpGet("{dateTime:datetime}")]
-        public async Task<ActionResult<FileResult>> GetFileWithLogs(DateTime dateTime)
+        public async Task<IActionResult> GetFileWithLogs(DateTime dateTime)
         {
             string normalizedDate = dateTime.ToString("yyyyMMdd");
             var path = Path.Combine(Directory.GetCurrentDirectory(), options.PathToFolder, $"{options.LogsFilesName}{normalizedDate}{options.LogsFilesExtensions}");
