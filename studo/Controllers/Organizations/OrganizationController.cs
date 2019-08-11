@@ -80,7 +80,7 @@ namespace studo.Controllers.Organizations
             {
                 logger.LogDebug(ae.Message);
                 logger.LogDebug(ae.StackTrace);
-                return NotFound("Can't find organization");
+                return NotFound($"Can't find organization {organizationEditRequest.Id}");
             }
             catch (MethodAccessException mae)
             {

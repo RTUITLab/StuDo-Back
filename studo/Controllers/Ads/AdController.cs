@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using studo.Models;
 using studo.Models.Requests.Ads;
 using studo.Models.Responses.Ads;
@@ -24,13 +25,15 @@ namespace studo.Controllers.Ads
         private readonly UserManager<User> userManager;
         private readonly IAdManager adManager;
         private readonly IMapper mapper;
+        private readonly ILogger<AdController> logger;
 
         public AdController(UserManager<User> userManager, IAdManager adManager,
-            IMapper mapper)
+            IMapper mapper, ILogger<AdController> logger)
         {
             this.userManager = userManager;
             this.adManager = adManager;
             this.mapper = mapper;
+            this.logger = logger;
         }
 
         [HttpGet("user/{userId:guid}")]
@@ -62,9 +65,6 @@ namespace studo.Controllers.Ads
         [HttpPost]
         public async Task<ActionResult<AdView>> CreateAdAsync([FromBody] AdCreateRequest adCreateRequest)
         {
-            if (adCreateRequest == null)
-                return BadRequest("No data inside");
-
             if (!adCreateRequest.OrganizationId.HasValue)
                 adCreateRequest.UserId = Guid.Parse(userManager.GetUserId(User));
 
@@ -82,21 +82,33 @@ namespace studo.Controllers.Ads
         [HttpPut]
         public async Task<ActionResult<AdView>> EditAdAsync([FromBody] AdEditRequest adEditRequest)
         {
-            var ad = await adManager.Ads.FirstOrDefaultAsync(ev => ev.Id == adEditRequest.Id);
-            if (ad == null)
-                return NotFound("Can't find ad");
-
             var current = await GetCurrentUser();
-            if (current.Id != ad.UserId.Value)
-                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            var editedAd = await adManager.EditAsync(adEditRequest);
-            if (editedAd == null)
-                return BadRequest("Can't edit ad");
-
-            return Ok(await editedAd
+            try
+            {
+                var editedAd = await adManager.EditAsync(adEditRequest, current.Id);
+                return Ok(await editedAd
                 .ProjectTo<AdView>(mapper.ConfigurationProvider)
                 .SingleAsync());
+            }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message);
+                logger.LogDebug(ae.StackTrace);
+                return NotFound($"Can't find ad {adEditRequest.Id}");
+            }
+            catch (MethodAccessException mae)
+            {
+                logger.LogDebug(mae.Message);
+                logger.LogDebug(mae.StackTrace);
+                logger.LogDebug($"User {current.Email} has no rights to edit organization {adEditRequest.Id}");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message);
+                logger.LogDebug(ex.StackTrace);
+                return StatusCode(500);
+            }
         }
 
         [HttpDelete]

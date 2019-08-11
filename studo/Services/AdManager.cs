@@ -51,14 +51,25 @@ namespace studo.Services
         // TODO: check if user in organization can edit ads
         // or make separate controllers for user's ads and org's ads
 
-        public async Task<IQueryable<Ad>> EditAsync(AdEditRequest adEditRequest)
+        public async Task<IQueryable<Ad>> EditAsync(AdEditRequest adEditRequest, Guid userId)
         {
-            var adToEdit = await dbContext.Ads.FindAsync(adEditRequest.Id);
-            if (adToEdit == null)
-                return null;
+            bool exist = await Ads
+                .Where(ad => ad.Id == adEditRequest.Id)
+                .AnyAsync();
 
-            mapper.Map(adEditRequest, adToEdit);
+            if (!exist)
+                throw new ArgumentException();
 
+            bool hasRight = await Ads
+                .Where(ad => ad.Id == adEditRequest.Id)
+                .AnyAsync(ad => ad.UserId.HasValue && ad.UserId.Value == userId);
+
+            if (!hasRight)
+                throw new MethodAccessException();
+
+            Ad adToEdit = mapper.Map<Ad>(adEditRequest);
+
+            dbContext.Ads.Update(adToEdit);
             await dbContext.SaveChangesAsync();
             return dbContext.Ads
                 .Where(ad => ad.Id == adToEdit.Id);
