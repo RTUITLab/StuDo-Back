@@ -20,27 +20,27 @@ namespace studo.Filters
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {
+            HeadersOutput(context.HttpContext.Request);
+
+            logger.LogDebug("Below should be a model in JSON format -->");
+            try
+            {
+                var body = BodyToString(context.HttpContext.Request);
+                logger.LogDebug(body);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message);
+                logger.LogDebug(ex.StackTrace);
+            }
+            logger.LogDebug("Above should be a model in JSON format <--");
+
             var modelState = context.ModelState;
 
             if (!modelState.IsValid)
             {
                 context.HttpContext.Response.StatusCode = 400;
                 context.Result = new JsonResult("Model is invalid");
-
-                HeadersOutput(context.HttpContext.Request);
-
-                logger.LogDebug("Below should be a model in JSON format -->");
-                try
-                {
-                    var body = BodyToString(context.HttpContext.Request);
-                    logger.LogDebug(body);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogDebug(ex.Message);
-                    logger.LogDebug(ex.StackTrace);
-                }
-                logger.LogDebug("Above should be a model in JSON format <--");
             }
         }
 

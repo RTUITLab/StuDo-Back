@@ -95,8 +95,12 @@ namespace studo.Controllers.Users
         public async Task<ActionResult<ResumeView>> CreateResumeAsync ([FromBody] CreateResumeRequest createResumeRequest)
         {
             var newResume = mapper.Map<Resume>(createResumeRequest);
-            newResume.UserId = Guid.Parse(userManager.GetUserId(User));
-            newResume.User = await GetCurrentUser();
+
+            var current = await GetCurrentUser();
+            newResume.UserId = current.Id;
+            newResume.User = current;
+            //newResume.UserId = Guid.Parse(userManager.GetUserId(User));
+            //newResume.User = await GetCurrentUser();
 
             await dbContext.Resumes.AddAsync(newResume);
             await dbContext.SaveChangesAsync();
