@@ -27,6 +27,8 @@ namespace studo.Filters
                 context.HttpContext.Response.StatusCode = 400;
                 context.Result = new JsonResult("Model is invalid");
 
+                HeadersOutput(context.HttpContext.Request);
+
                 logger.LogDebug("Below should be a model in JSON format -->");
                 try
                 {
@@ -39,6 +41,18 @@ namespace studo.Filters
                     logger.LogDebug(ex.StackTrace);
                 }
                 logger.LogDebug("Above should be a model in JSON format <--");
+            }
+        }
+
+        private void HeadersOutput(HttpRequest request)
+        {
+            int i = 0;
+            foreach (var header in request.Headers)
+            {
+                foreach(var value in header.Value)
+                {
+                    logger.LogDebug(++i + " header -- " + value);
+                }
             }
         }
 

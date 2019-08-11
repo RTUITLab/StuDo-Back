@@ -18,6 +18,7 @@ namespace studo.Controllers.Ads
 {
     [Produces("application/json")]
     [Route("api/ad")]
+    [ApiController]
     public class AdController : Controller
     {
         private readonly UserManager<User> userManager;

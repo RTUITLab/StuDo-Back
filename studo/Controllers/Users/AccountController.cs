@@ -21,6 +21,7 @@ namespace studo.Controllers.Users
 {
     [Produces("application/json")]
     [Route("api/user")]
+    [ApiController]
     public class AccountController : Controller
     {
         private readonly UserManager<User> userManager;
