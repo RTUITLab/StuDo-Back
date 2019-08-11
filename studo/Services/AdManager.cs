@@ -45,8 +45,6 @@ namespace studo.Services
             await dbContext.Ads.AddAsync(newAd);
             await dbContext.SaveChangesAsync();
             return dbContext.Ads
-                .Include(ad => ad.User)
-                .Include(ad => ad.Organization)
                 .Where(ad => ad.Id == newAd.Id);
         }
 
@@ -63,8 +61,6 @@ namespace studo.Services
 
             await dbContext.SaveChangesAsync();
             return dbContext.Ads
-                .Include(ad => ad.User)
-                .Include(ad => ad.Organization)
                 .Where(ad => ad.Id == adToEdit.Id);
         }
 
