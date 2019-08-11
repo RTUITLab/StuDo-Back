@@ -157,7 +157,7 @@ namespace studo
             services.AddMvc(options =>
             {
                 options.Filters.Add<ValidateModelAttribute>();
-                options.Filters.Add<IgnoreAntiforgeryTokenAttribute>();
+                options.Filters.Add<IgnoreAntiforgeryTokenAttribute>(1001);
                 var policy = new AuthorizationPolicyBuilder()
                      .RequireAuthenticatedUser()
                      .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme)
