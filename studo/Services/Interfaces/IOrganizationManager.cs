@@ -10,7 +10,7 @@ namespace studo.Services.Interfaces
     {
         IQueryable<Organization> Organizations { get; }
         Task<IQueryable<Organization>> AddAsync(OrganizationCreateRequest organizationCreateRequest, User creator);
-        Task<IQueryable<Organization>> EditAsync(OrganizationEditRequest organizationEditRequest);
+        Task<IQueryable<Organization>> EditAsync(OrganizationEditRequest organizationEditRequest, Guid userId);
         Task DeleteAsync(Guid organizationId);
     }
 }

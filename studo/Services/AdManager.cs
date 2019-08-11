@@ -51,6 +51,7 @@ namespace studo.Services
         }
 
         // TODO: check if user in organization can edit ads
+        // or make separate controllers for user's ads and org's ads
 
         public async Task<IQueryable<Ad>> EditAsync(AdEditRequest adEditRequest)
         {

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using studo.Data;
 using studo.Models;
@@ -16,7 +17,6 @@ namespace studo.Services
     {
         private readonly DatabaseContext dbContext;
         private readonly IMapper mapper;
-        private readonly UserManager<User> userManager;
         private readonly ILogger<OrganizationManager> logger;
 
         private IQueryable<OrganizationRight> OrganizationRights => dbContext.OrganizationRights;
@@ -24,11 +24,10 @@ namespace studo.Services
         public IQueryable<Organization> Organizations => dbContext.Organizations;
 
         public OrganizationManager(DatabaseContext dbContext, IMapper mapper,
-            UserManager<User> userManager, ILogger<OrganizationManager> logger)
+            ILogger<OrganizationManager> logger)
         {
             this.dbContext = dbContext;
             this.mapper = mapper;
-            this.userManager = userManager;
             this.logger = logger;
         }
 
@@ -68,9 +67,30 @@ namespace studo.Services
                 .Where(org => org.Id == newOrg.Id);
         }
 
-        public Task<IQueryable<Organization>> EditAsync(OrganizationEditRequest organizationEditRequest)
+        public async Task<IQueryable<Organization>> EditAsync(OrganizationEditRequest organizationEditRequest, Guid userId)
         {
-            throw new NotImplementedException();
+            bool exist = await Organizations
+                .Where(org => org.Id == organizationEditRequest.Id)
+                .AnyAsync();
+
+            if (!exist)
+                throw new ArgumentException();
+
+            bool hasRight = await Organizations
+                .Where(org => org.Id == organizationEditRequest.Id)
+                .SelectMany(org => org.Users)
+                .Where(u => u.UserId == userId && u.OrganizationId == organizationEditRequest.Id)
+                .AnyAsync(userorgright => userorgright.UserOrganizationRight.RightName == Configure.OrganizationRights.CanEditOrganizationInformation.ToString());
+
+            if (!hasRight)
+                throw new MethodAccessException();
+
+            Organization orgToEdit = mapper.Map<Organization>(organizationEditRequest);
+
+            dbContext.Organizations.Update(orgToEdit);
+            await dbContext.SaveChangesAsync();
+            return Organizations
+                .Where(org => org.Id == organizationEditRequest.Id);
         }
 
         public Task DeleteAsync(Guid organizationId)

@@ -110,6 +110,9 @@ namespace studo
                         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.@+";
 
                     identityOptions.User.RequireUniqueEmail = true;
+
+                    identityOptions.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(0);
+                    identityOptions.Lockout.MaxFailedAccessAttempts = 100;
                 })
                 .AddEntityFrameworkStores<DatabaseContext>()
                 .AddDefaultTokenProviders();

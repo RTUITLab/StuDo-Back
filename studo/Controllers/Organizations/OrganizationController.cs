@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -61,6 +63,38 @@ namespace studo.Controllers.Organizations
                 .SingleAsync();
 
             return Ok(newOrg);
+        }
+
+        [HttpPut]
+        public async Task<ActionResult<OrganizationView>> EditOrganizationAsync([FromBody] OrganizationEditRequest organizationEditRequest)
+        {
+            var current = await GetCurrentUser();
+            try
+            {
+                var editedOrg = await organizationManager.EditAsync(organizationEditRequest, current.Id);
+                return Ok(await editedOrg
+                    .ProjectTo<OrganizationView>(mapper.ConfigurationProvider)
+                    .SingleAsync());
+            }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message);
+                logger.LogDebug(ae.StackTrace);
+                return NotFound("Can't find organization");
+            }
+            catch (MethodAccessException mae)
+            {
+                logger.LogDebug(mae.Message);
+                logger.LogDebug(mae.StackTrace);
+                logger.LogDebug($"User {current.Email} has no rights to edit organization {organizationEditRequest.Id}");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message);
+                logger.LogDebug(ex.StackTrace);
+                return StatusCode(500);
+            }
         }
 
         private async Task<User> GetCurrentUser()

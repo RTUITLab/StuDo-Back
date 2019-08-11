@@ -83,7 +83,7 @@ namespace studo.Controllers.Ads
         {
             var ad = await adManager.Ads.FirstOrDefaultAsync(ev => ev.Id == adEditRequest.Id);
             if (ad == null)
-                return BadRequest("Can't find ad");
+                return NotFound("Can't find ad");
 
             var current = await GetCurrentUser();
             if (current.Id != ad.UserId.Value)
@@ -91,11 +91,11 @@ namespace studo.Controllers.Ads
 
             var editedAd = await adManager.EditAsync(adEditRequest);
             if (editedAd == null)
-                return NotFound(adEditRequest);
+                return BadRequest("Can't edit ad");
 
-            return Ok(await editedAd.
-                ProjectTo<AdView>(mapper.ConfigurationProvider).
-                SingleAsync());
+            return Ok(await editedAd
+                .ProjectTo<AdView>(mapper.ConfigurationProvider)
+                .SingleAsync());
         }
 
         [HttpDelete]
