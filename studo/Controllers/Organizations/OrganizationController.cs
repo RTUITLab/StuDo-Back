@@ -78,21 +78,18 @@ namespace studo.Controllers.Organizations
             }
             catch (ArgumentException ae)
             {
-                logger.LogDebug(ae.Message);
-                logger.LogDebug(ae.StackTrace);
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
                 return NotFound($"Can't find organization {organizationEditRequest.Id}");
             }
             catch (MethodAccessException mae)
             {
-                logger.LogDebug(mae.Message);
-                logger.LogDebug(mae.StackTrace);
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
                 logger.LogDebug($"User {current.Email} has no rights to edit organization {organizationEditRequest.Id}");
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
             catch (Exception ex)
             {
-                logger.LogDebug(ex.Message);
-                logger.LogDebug(ex.StackTrace);
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
                 return StatusCode(500);
             }
         }

@@ -82,31 +82,28 @@ namespace studo.Controllers.Ads
         [HttpPut]
         public async Task<ActionResult<AdView>> EditAdAsync([FromBody] AdEditRequest adEditRequest)
         {
-            var current = await GetCurrentUser();
+            var currentUserId = GetCurrentUserId();
             try
             {
-                var editedAd = await adManager.EditAsync(adEditRequest, current.Id);
+                var editedAd = await adManager.EditAsync(adEditRequest, currentUserId);
                 return Ok(await editedAd
                 .ProjectTo<AdView>(mapper.ConfigurationProvider)
                 .SingleAsync());
             }
             catch (ArgumentException ae)
             {
-                logger.LogDebug(ae.Message);
-                logger.LogDebug(ae.StackTrace);
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
                 return NotFound($"Can't find ad {adEditRequest.Id}");
             }
             catch (MethodAccessException mae)
             {
-                logger.LogDebug(mae.Message);
-                logger.LogDebug(mae.StackTrace);
-                logger.LogDebug($"User {current.Email} has no rights to edit organization {adEditRequest.Id}");
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"User {currentUserId} has no rights to edit organization {adEditRequest.Id}");
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
             catch (Exception ex)
             {
-                logger.LogDebug(ex.Message);
-                logger.LogDebug(ex.StackTrace);
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
                 return StatusCode(500);
             }
         }
@@ -119,8 +116,8 @@ namespace studo.Controllers.Ads
             if (ad == null)
                 return BadRequest("Can't find ad");
 
-            var current = await GetCurrentUser();
-            if (current.Id != ad.UserId.Value)
+            var currentUserId = GetCurrentUserId();
+            if (ad.UserId.HasValue && currentUserId != ad.UserId.Value)
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await adManager.DeleteAsync(adId);
@@ -133,7 +130,7 @@ namespace studo.Controllers.Ads
             .ProjectTo<AdView>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync(ad => ad.Id == adId);
 
-        private async Task<User> GetCurrentUser()
-            => await userManager.FindByIdAsync(userManager.GetUserId(User));
+        private Guid GetCurrentUserId()
+            => Guid.Parse(userManager.GetUserId(User));
     }
 }

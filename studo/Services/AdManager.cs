@@ -53,12 +53,8 @@ namespace studo.Services
 
         public async Task<IQueryable<Ad>> EditAsync(AdEditRequest adEditRequest, Guid userId)
         {
-            bool exist = await Ads
-                .Where(ad => ad.Id == adEditRequest.Id)
-                .AnyAsync();
-
-            if (!exist)
-                throw new ArgumentException();
+            Ad adToEdit = await Ads.FirstOrDefaultAsync(ad => ad.Id == adEditRequest.Id)
+                ?? throw new ArgumentException();
 
             bool hasRight = await Ads
                 .Where(ad => ad.Id == adEditRequest.Id)
@@ -67,7 +63,7 @@ namespace studo.Services
             if (!hasRight)
                 throw new MethodAccessException();
 
-            Ad adToEdit = mapper.Map<Ad>(adEditRequest);
+            mapper.Map(adEditRequest, adToEdit);
 
             dbContext.Ads.Update(adToEdit);
             await dbContext.SaveChangesAsync();

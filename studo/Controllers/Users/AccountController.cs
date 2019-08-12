@@ -99,8 +99,6 @@ namespace studo.Controllers.Users
             var current = await GetCurrentUser();
             newResume.UserId = current.Id;
             newResume.User = current;
-            //newResume.UserId = Guid.Parse(userManager.GetUserId(User));
-            //newResume.User = await GetCurrentUser();
 
             await dbContext.Resumes.AddAsync(newResume);
             await dbContext.SaveChangesAsync();
