@@ -126,9 +126,26 @@ namespace studo.Controllers.Ads
 
         [HttpGet("{adId:guid}")]
         public async Task<ActionResult<AdView>> GetAdAsync(Guid adId)
-            => await adManager.Ads
-            .ProjectTo<AdView>(mapper.ConfigurationProvider)
-            .FirstOrDefaultAsync(ad => ad.Id == adId);
+        {
+            try
+            {
+                AdView adView = await adManager.Ads
+                    .ProjectTo<AdView>(mapper.ConfigurationProvider)
+                    .FirstOrDefaultAsync(ad => ad.Id == adId)
+                    ?? throw new ArgumentException();
+                return Ok(adView);
+            }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                return NotFound($"Can't find ad {adId}");
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
 
         private Guid GetCurrentUserId()
             => Guid.Parse(userManager.GetUserId(User));

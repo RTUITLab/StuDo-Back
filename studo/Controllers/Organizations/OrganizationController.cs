@@ -35,6 +35,29 @@ namespace studo.Controllers.Organizations
             this.userManager = userManager;
         }
 
+        [HttpGet("{orgId:guid}")]
+        public async Task<ActionResult<OrganizationView>> GetOneOrganizationAsync(Guid orgId)
+        {
+            try
+            {
+                OrganizationView orgView = await organizationManager.Organizations
+                    .ProjectTo<OrganizationView>(mapper.ConfigurationProvider)
+                    .FirstOrDefaultAsync(org => org.Id == orgId)
+                    ?? throw new ArgumentException();
+                return Ok(orgView);
+            }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                return NotFound($"Can't find ad {orgId}");
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<OrganizationView>>> GetAllOrganizations()
         {
