@@ -27,7 +27,7 @@ namespace studo.Services
             this.userManager = userManager;
         }
 
-        public async Task<IQueryable<Ad>> AddAsync(AdCreateRequest adCreateRequest)
+        public async Task<IQueryable<Ad>> AddAsync(AdCreateRequest adCreateRequest, Guid userId)
         {
             var newAd = mapper.Map<Ad>(adCreateRequest);
 
@@ -38,7 +38,8 @@ namespace studo.Services
             }
             else
             {
-                var creator = await userManager.FindByIdAsync(newAd.UserId.Value.ToString());
+                var creator = await userManager.FindByIdAsync(userId.ToString())
+                    ?? throw new ArgumentException();
                 newAd.User = creator;
             }
 

@@ -9,7 +9,7 @@ namespace studo.Services.Interfaces
     public interface IAdManager
     {
         IQueryable<Ad> Ads { get; }
-        Task<IQueryable<Ad>> AddAsync(AdCreateRequest adCreateRequest);
+        Task<IQueryable<Ad>> AddAsync(AdCreateRequest adCreateRequest, Guid userId);
         Task<IQueryable<Ad>> EditAsync(AdEditRequest adEditRequest, Guid userId);
         Task DeleteAsync(Guid adId, Guid userId);
     }

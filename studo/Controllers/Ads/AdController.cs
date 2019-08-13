@@ -65,18 +65,26 @@ namespace studo.Controllers.Ads
         [HttpPost]
         public async Task<ActionResult<AdView>> CreateAdAsync([FromBody] AdCreateRequest adCreateRequest)
         {
-            if (!adCreateRequest.OrganizationId.HasValue)
-                adCreateRequest.UserId = Guid.Parse(userManager.GetUserId(User));
-
-            var createdAd = await adManager.AddAsync(adCreateRequest);
-            if (createdAd == null)
-                return BadRequest("Can't create ad");
-
-            AdView newAd = await createdAd
-                .ProjectTo<AdView>(mapper.ConfigurationProvider)
-                .SingleAsync();
-
-            return Ok(newAd);
+            var currentUserId = GetCurrentUserId();
+            try
+            {
+                var createdAd = await adManager.AddAsync(adCreateRequest, currentUserId);
+                AdView newAd = await createdAd
+                    .ProjectTo<AdView>(mapper.ConfigurationProvider)
+                    .SingleAsync();
+                return Ok(newAd);
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                logger.LogDebug($"User {currentUserId} doesn't exist in current database");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
         }
 
         [HttpPut]
