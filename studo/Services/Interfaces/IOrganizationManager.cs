@@ -9,8 +9,8 @@ namespace studo.Services.Interfaces
     public interface IOrganizationManager
     {
         IQueryable<Organization> Organizations { get; }
-        Task<IQueryable<Organization>> AddAsync(OrganizationCreateRequest organizationCreateRequest, User creator);
+        Task<IQueryable<Organization>> AddAsync(OrganizationCreateRequest organizationCreateRequest, Guid creatorId);
         Task<IQueryable<Organization>> EditAsync(OrganizationEditRequest organizationEditRequest, Guid userId);
-        Task DeleteAsync(Guid organizationId);
+        Task DeleteAsync(Guid organizationId, Guid userId);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using studo.Data;
@@ -17,26 +18,25 @@ namespace studo.Services
         private readonly DatabaseContext dbContext;
         private readonly IMapper mapper;
         private readonly ILogger<OrganizationManager> logger;
+        private readonly UserManager<User> userManager;
 
         private IQueryable<OrganizationRight> OrganizationRights => dbContext.OrganizationRights;
 
         public IQueryable<Organization> Organizations => dbContext.Organizations;
 
         public OrganizationManager(DatabaseContext dbContext, IMapper mapper,
-            ILogger<OrganizationManager> logger)
+            ILogger<OrganizationManager> logger, UserManager<User> userManager)
         {
             this.dbContext = dbContext;
             this.mapper = mapper;
             this.logger = logger;
+            this.userManager = userManager;
         }
 
-        public async Task<IQueryable<Organization>> AddAsync(OrganizationCreateRequest organizationCreateRequest, User creator)
+        public async Task<IQueryable<Organization>> AddAsync(OrganizationCreateRequest organizationCreateRequest, Guid creatorId)
         {
-            if (creator == null)
-            {
-                logger.LogDebug("Creator = null");
-                return null;
-            }
+            var creator = await userManager.FindByIdAsync(creatorId.ToString())
+                ?? throw new ArgumentNullException("Can't find creator");
 
             var newOrg = mapper.Map<Organization>(organizationCreateRequest);
             newOrg.Users = new List<UserRightsInOrganization>();
@@ -92,9 +92,22 @@ namespace studo.Services
                 .Where(org => org.Id == organizationEditRequest.Id);
         }
 
-        public Task DeleteAsync(Guid organizationId)
+        public async Task DeleteAsync(Guid organizationId, Guid userId)
         {
-            throw new NotImplementedException();
+            Organization orgToDelete = await Organizations.FirstOrDefaultAsync(org => org.Id == organizationId)
+                ?? throw new ArgumentException();
+
+            bool hasRight = await Organizations
+                .Where(org => org.Id == organizationId)
+                .SelectMany(org => org.Users)
+                .Where(u => u.UserId == userId && u.OrganizationId == organizationId)
+                .AnyAsync(userorgright => userorgright.UserOrganizationRight.RightName == Configure.OrganizationRights.CanDeleteOrganization.ToString());
+
+            if (!hasRight)
+                throw new MethodAccessException();
+
+            dbContext.Organizations.Remove(orgToDelete);
+            await dbContext.SaveChangesAsync();
         }
     }
 }
