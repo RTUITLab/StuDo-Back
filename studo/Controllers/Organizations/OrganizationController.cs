@@ -142,7 +142,7 @@ namespace studo.Controllers.Organizations
             catch (MethodAccessException mae)
             {
                 logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
-                logger.LogDebug($"User {currentUserId} has no rights to edit organization {orgId}");
+                logger.LogDebug($"User {currentUserId} has no rights to delete organization {orgId}");
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
             catch (Exception ex)

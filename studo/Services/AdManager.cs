@@ -71,9 +71,14 @@ namespace studo.Services
                 .Where(ad => ad.Id == adToEdit.Id);
         }
 
-        public async Task DeleteAsync(Guid adId)
+        public async Task DeleteAsync(Guid adId, Guid userId)
         {
-            var adToDelete = await dbContext.Ads.FindAsync(adId);
+            Ad adToDelete = await Ads.FirstOrDefaultAsync(ad => ad.Id == adId)
+                ?? throw new ArgumentException();
+
+            if (!adToDelete.UserId.HasValue || adToDelete.UserId.Value != userId)
+                throw new MethodAccessException();
+
             dbContext.Ads.Remove(adToDelete);
             await dbContext.SaveChangesAsync();
         }

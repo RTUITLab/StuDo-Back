@@ -108,20 +108,31 @@ namespace studo.Controllers.Ads
             }
         }
 
-        [HttpDelete]
-        [Route("{adId:guid}")]
+        [HttpDelete("{adId:guid}")]
         public async Task<ActionResult<Guid>> DeleteAdAsync(Guid adId)
         {
-            var ad = await adManager.Ads.FirstOrDefaultAsync(ev => ev.Id == adId);
-            if (ad == null)
-                return BadRequest("Can't find ad");
-
             var currentUserId = GetCurrentUserId();
-            if (ad.UserId.HasValue && currentUserId != ad.UserId.Value)
+            try
+            {
+                await adManager.DeleteAsync(adId, currentUserId);
+                return Ok(adId);
+            }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                return NotFound($"Can't find ad {adId}");
+            }
+            catch (MethodAccessException mae)
+            {
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"User {currentUserId} has no rights to delete ad {adId}");
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            await adManager.DeleteAsync(adId);
-            return Ok(adId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
         }
 
         [HttpGet("{adId:guid}")]
