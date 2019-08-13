@@ -18,6 +18,9 @@ using studo.Services.Interfaces;
 
 namespace studo.Controllers
 {
+    /// <summary>
+    /// Controller for login and register users
+    /// </summary>
     [Produces("application/json")]
     [Route("api/auth")]
     public class AuthenticationController : Controller
@@ -40,13 +43,19 @@ namespace studo.Controllers
             this.env = env;
         }
 
+        /// <summary>
+        /// Creates a new user and give him 'user' role
+        /// </summary>
+        /// <param name="userRegistrationRequest"></param>
+        /// <returns>All is ok</returns>
+        /// <response code="200">If user was successfully created and postcard to confirm email was sent</response>
+        /// <response code="400">If user with such email exists</response>
         [AllowAnonymous]
         [HttpPost("register")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> RegisterAsync([FromBody] UserRegistrationRequest userRegistrationRequest)
         {
-            if (!ModelState.IsValid)
-                return BadRequest();
-
             var user = await userManager.FindByEmailAsync(userRegistrationRequest.Email);
             if (user != null)
                 return BadRequest("User with this email exists");
@@ -83,8 +92,19 @@ namespace studo.Controllers
             }
         }
 
+        /// <summary>
+        /// Login user to a system
+        /// </summary>
+        /// <param name="userLoginRequest"></param>
+        /// <returns>User info and his access token</returns>
+        /// <response code="200">If user exists and password is correct</response>
+        /// <response code="400">If user's email isn't confirmed or incorrent password</response>
+        /// <response code="404">If user with this email doesn't exist</response>
         [AllowAnonymous]
         [HttpPost("login")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<LoginResponse>> LoginAsync([FromBody] UserLoginRequest userLoginRequest)
         {
             var user = await userManager.FindByEmailAsync(userLoginRequest.Email);
@@ -117,7 +137,10 @@ namespace studo.Controllers
         public async Task<ActionResult<string>> DeleteUserAsync(string userEmail)
         {
             if (!env.IsDevelopment())
+            {
+                logger.LogError($"Environment is {env.EnvironmentName}");
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
 
             var user = await userManager.FindByEmailAsync(userEmail);
             if (user == null)
@@ -149,7 +172,7 @@ namespace studo.Controllers
                 foreach (var er in result.Errors)
                     logger.LogError($"Result of deleting user with email {user.Email} is {er}");
 
-                throw new Exception($"Result of deletign user with email {user.Email} is {result}");
+                throw new Exception($"Result of deleting user with email {user.Email} is {result}");
             }
         }
     }
