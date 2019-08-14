@@ -68,6 +68,10 @@ namespace studo.Data
 
             builder.Entity<Organization>()
                 .HasMany(org => org.Users);
+
+            builder.Entity<Organization>()
+                .HasIndex(org => org.Name)
+                .IsUnique();
         }
 
         private void ConfigureAds(ModelBuilder builder)

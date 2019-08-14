@@ -35,6 +35,13 @@ namespace studo.Services
 
         public async Task<IQueryable<Organization>> AddAsync(OrganizationCreateRequest organizationCreateRequest, Guid creatorId)
         {
+            bool exist = await Organizations
+                .Where(org => org.Name == organizationCreateRequest.Name)
+                .AnyAsync();
+
+            if (exist)
+                throw new ArgumentException();
+
             var creator = await userManager.FindByIdAsync(creatorId.ToString())
                 ?? throw new ArgumentNullException("Can't find creator");
 

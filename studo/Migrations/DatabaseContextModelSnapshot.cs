@@ -15,7 +15,7 @@ namespace studo.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.2.3-servicing-35854")
+                .HasAnnotation("ProductVersion", "2.2.6-servicing-10079")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -141,6 +141,10 @@ namespace studo.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("[Name] IS NOT NULL");
+
                     b.ToTable("Organizations");
                 });
 
@@ -263,13 +267,13 @@ namespace studo.Migrations
 
                     b.Property<Guid>("OrganizationRightId");
 
-                    b.HasKey("UserId", "OrganizationId");
+                    b.HasKey("UserId", "OrganizationId", "OrganizationRightId");
 
                     b.HasIndex("OrganizationId");
 
                     b.HasIndex("OrganizationRightId");
 
-                    b.ToTable("UserRightsInOrganizations");
+                    b.ToTable("UserRightsInOrganization");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

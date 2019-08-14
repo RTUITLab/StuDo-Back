@@ -89,6 +89,12 @@ namespace studo.Controllers.Organizations
                 logger.LogDebug($"User {currentUserId} doesn't exist in current database");
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                logger.LogDebug($"Organization with name '{organizationCreateRequest.Name}' already exists");
+                return BadRequest($"Organization with name '{organizationCreateRequest.Name}' already exists");
+            }
             catch (Exception ex)
             {
                 logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
