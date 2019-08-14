@@ -19,6 +19,9 @@ namespace studo.Services.Configure
         private readonly RoleManager<Role> roleManager;
         private readonly DatabaseContext dbContext;
 
+        private int tryCount = 10;
+        private TimeSpan tryPeriod = TimeSpan.FromSeconds(5);
+
         public FillDb(IOptions<FillDbOptions> options, ILogger<FillDb> logger,
             UserManager<User> userManager, RoleManager<Role> roleManager,
             DatabaseContext dbContext)
@@ -32,10 +35,23 @@ namespace studo.Services.Configure
 
         public async Task Configure()
         {
-            await AddDefaultUser();
-            await AddRoles();
-            await AddRolesToDefaultUser();
-            await AddOrganizationRights();
+            try
+            {
+                await AddDefaultUser();
+                await AddRoles();
+                await AddRolesToDefaultUser();
+                await AddOrganizationRights();
+            }
+            catch (Exception ex)
+            {
+                if (tryCount == 0)
+                    throw;
+
+                logger.LogWarning(ex, "Error while filling Database by default data");
+                tryCount--;
+                await Task.Delay(tryPeriod);
+                await Configure();
+            }
         }
 
         private async Task AddDefaultUser()
