@@ -26,26 +26,63 @@ namespace studo.Controllers.Ads
         private readonly IAdManager adManager;
         private readonly IMapper mapper;
         private readonly ILogger<AdController> logger;
+        private readonly IOrganizationManager organizationManager;
 
         public AdController(UserManager<User> userManager, IAdManager adManager,
-            IMapper mapper, ILogger<AdController> logger)
+            IMapper mapper, ILogger<AdController> logger, IOrganizationManager organizationManager)
         {
             this.userManager = userManager;
             this.adManager = adManager;
             this.mapper = mapper;
             this.logger = logger;
+            this.organizationManager = organizationManager;
         }
 
         [HttpGet("user/{userId:guid}")]
-        public async Task<ActionResult<IEnumerable<AdView>>> GetUsersAdsAsync(Guid userId)
+        public async Task<ActionResult<IEnumerable<CompactAdView>>> GetUserAdsAsync(Guid userId)
         {
-            var ads = adManager.Ads.Where(ad => ad.UserId.Value == userId);
+            bool exist = await userManager.Users
+                .Where(u => u.Id == userId)
+                .AnyAsync();
+
+            if (!exist)
+            {
+                logger.LogDebug($"Can't find user {userId}");
+                return NotFound($"Can't find user {userId}");
+            }
+
+            var ads = adManager.Ads
+                .Where(ad => ad.UserId.HasValue && ad.UserId.Value == userId);
             if (ads.Count() == 0)
-                return Ok(new List<AdView>());
+                return Ok(new List<CompactAdView>());
 
             return Ok(
                 await ads
-                .ProjectTo<AdView>(mapper.ConfigurationProvider)
+                .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
+                .ToListAsync());
+        }
+
+        [HttpGet("organization/{orgId:guid}")]
+        public async Task<ActionResult<IEnumerable<CompactAdView>>> GetOrganizationAdsAsync(Guid orgId)
+        {
+            bool exist = await organizationManager.Organizations
+                .Where(org => org.Id == orgId)
+                .AnyAsync();
+
+            if (!exist)
+            {
+                logger.LogDebug($"Can't find organization {orgId}");
+                return NotFound($"Can't find organization {orgId}");
+            }
+
+            var ads = adManager.Ads
+                .Where(ad => ad.OrganizationId.HasValue && ad.OrganizationId.Value == orgId);
+            if (ads.Count() == 0)
+                return Ok(new List<CompactAdView>());
+
+            return Ok(
+                await ads
+                .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
                 .ToListAsync());
         }
 
@@ -72,12 +109,32 @@ namespace studo.Controllers.Ads
                 AdView newAd = await createdAd
                     .ProjectTo<AdView>(mapper.ConfigurationProvider)
                     .SingleAsync();
+
                 return Ok(newAd);
             }
             catch (ArgumentNullException ane)
             {
                 logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
-                logger.LogDebug($"User {currentUserId} doesn't exist in current database");
+                if (adCreateRequest.UserId.HasValue)
+                {
+                    logger.LogDebug($"Current user {currentUserId} doesn't exist in database");
+                    return BadRequest($"Current user {currentUserId} doesn't exist in database");
+                }
+                else if (adCreateRequest.OrganizationId.HasValue)
+                {
+                    logger.LogDebug($"Organization {adCreateRequest.OrganizationId.Value} doesn't exist in database");
+                    return BadRequest($"Organization {adCreateRequest.OrganizationId.Value} doesn't exist in database");
+                }
+                else
+                {
+                    logger.LogDebug("No userId or organizationId while creating ad");
+                    return BadRequest("No userId or organizationId while creating ad");
+                }
+            }
+            catch (MethodAccessException mae)
+            {
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"Current user {currentUserId} has no rights to create ads in organization {adCreateRequest.OrganizationId.Value}");
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
             catch (Exception ex)
@@ -106,7 +163,7 @@ namespace studo.Controllers.Ads
             catch (MethodAccessException mae)
             {
                 logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
-                logger.LogDebug($"User {currentUserId} has no rights to edit organization {adEditRequest.Id}");
+                logger.LogDebug($"Current user {currentUserId} has no rights to edit ad {adEditRequest.Id}");
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
             catch (Exception ex)

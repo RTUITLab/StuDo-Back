@@ -3,7 +3,6 @@
     public enum OrganizationRights
     {
         CanEditMembers,
-        CanDeleteComments,
         CanEditRights,
         CanEditAd,
         CanEditOrganizationInformation,

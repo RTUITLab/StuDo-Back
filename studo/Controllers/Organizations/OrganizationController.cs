@@ -49,7 +49,7 @@ namespace studo.Controllers.Organizations
             catch (ArgumentException ae)
             {
                 logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
-                return NotFound($"Can't find ad {orgId}");
+                return NotFound($"Can't find organization {orgId}");
             }
             catch (Exception ex)
             {
@@ -113,10 +113,15 @@ namespace studo.Controllers.Organizations
                     .ProjectTo<OrganizationView>(mapper.ConfigurationProvider)
                     .SingleAsync());
             }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound($"Can't find organization {organizationEditRequest.Id}");
+            }
             catch (ArgumentException ae)
             {
                 logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
-                return NotFound($"Can't find organization {organizationEditRequest.Id}");
+                return BadRequest($"Organization with name '{organizationEditRequest.Name}' already exists");
             }
             catch (MethodAccessException mae)
             {

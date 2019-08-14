@@ -80,6 +80,13 @@ namespace studo.Services
                 .AnyAsync();
 
             if (!exist)
+                throw new ArgumentNullException();
+
+            exist = await Organizations
+                .Where(org => org.Name == organizationEditRequest.Name)
+                .AnyAsync();
+
+            if (exist)
                 throw new ArgumentException();
 
             bool hasRight = await Organizations
