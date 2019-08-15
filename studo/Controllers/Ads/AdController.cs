@@ -152,12 +152,12 @@ namespace studo.Controllers.Ads
             {
                 var editedAd = await adManager.EditAsync(adEditRequest, currentUserId);
                 return Ok(await editedAd
-                .ProjectTo<AdView>(mapper.ConfigurationProvider)
-                .SingleAsync());
+                    .ProjectTo<AdView>(mapper.ConfigurationProvider)
+                    .SingleAsync());
             }
-            catch (ArgumentException ae)
+            catch (ArgumentNullException ane)
             {
-                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
                 return NotFound($"Can't find ad {adEditRequest.Id}");
             }
             catch (MethodAccessException mae)
@@ -182,9 +182,9 @@ namespace studo.Controllers.Ads
                 await adManager.DeleteAsync(adId, currentUserId);
                 return Ok(adId);
             }
-            catch (ArgumentException ae)
+            catch (ArgumentNullException ane)
             {
-                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
                 return NotFound($"Can't find ad {adId}");
             }
             catch (MethodAccessException mae)

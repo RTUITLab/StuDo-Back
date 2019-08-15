@@ -18,18 +18,16 @@ namespace studo.Services
         private readonly IMapper mapper;
         private readonly ILogger logger;
         private readonly UserManager<User> userManager;
-        private readonly IOrganizationManager organizationManager;
 
         public IQueryable<Ad> Ads => dbContext.Ads;
 
         public AdManager(DatabaseContext dbContext, IMapper mapper, ILogger<AdManager> logger,
-            UserManager<User> userManager, IOrganizationManager organizationManager)
+            UserManager<User> userManager)
         {
             this.dbContext = dbContext;
             this.mapper = mapper;
             this.logger = logger;
             this.userManager = userManager;
-            this.organizationManager = organizationManager;
         }
 
         public async Task<IQueryable<Ad>> AddAsync(AdCreateRequest adCreateRequest, Guid userId)
@@ -39,7 +37,7 @@ namespace studo.Services
             if (newAd.OrganizationId.HasValue)
             {
                 // check if such organization exists
-                bool exist = await organizationManager.Organizations
+                bool exist = await dbContext.Organizations
                     .Where(org => org.Id == newAd.OrganizationId.Value)
                     .AnyAsync();
 
@@ -47,7 +45,7 @@ namespace studo.Services
                     throw new ArgumentNullException();
 
                 // check if user has rights to create ads in organization
-                bool hasRight = await organizationManager.Organizations
+                bool hasRight = await dbContext.Organizations
                     .Where(org => org.Id == newAd.OrganizationId.Value)
                     .SelectMany(org => org.Users)
                     .Where(u => u.UserId == userId && u.OrganizationId == newAd.OrganizationId.Value)
@@ -56,11 +54,11 @@ namespace studo.Services
                 if (!hasRight)
                     throw new MethodAccessException();
 
-                Organization creator = await organizationManager.Organizations
+                Organization creator = await dbContext.Organizations
                     .FirstOrDefaultAsync(org => org.Id == newAd.OrganizationId.Value);
 
                 newAd.Organization = creator;
-                logger.LogDebug($"Current user {userId} created ad '{adCreateRequest.Name}' in organization {newAd.OrganizationId.Value}");
+                logger.LogDebug($"Current user {userId} created ad '{newAd.Id}' in organization {newAd.OrganizationId.Value}");
             }
             else
             {
@@ -80,14 +78,26 @@ namespace studo.Services
         public async Task<IQueryable<Ad>> EditAsync(AdEditRequest adEditRequest, Guid userId)
         {
             Ad adToEdit = await Ads.FirstOrDefaultAsync(ad => ad.Id == adEditRequest.Id)
-                ?? throw new ArgumentException();
+                ?? throw new ArgumentNullException();
 
-            bool hasRight = await Ads
-                .Where(ad => ad.Id == adEditRequest.Id)
-                .AnyAsync(ad => ad.UserId.HasValue && ad.UserId.Value == userId);
+            if (adToEdit.OrganizationId.HasValue)
+            {
+                bool hasRight = await dbContext.Organizations
+                    .Where(org => org.Id == adToEdit.OrganizationId.Value)
+                    .SelectMany(org => org.Users)
+                    .Where(u => u.UserId == userId)
+                    .AnyAsync(userorgright => userorgright.UserOrganizationRight.RightName == Configure.OrganizationRights.CanEditAd.ToString());
 
-            if (!hasRight)
-                throw new MethodAccessException();
+                if (!hasRight)
+                    throw new MethodAccessException();
+
+                logger.LogDebug($"Current user {userId} edited ad {adToEdit.Id} in organization {adToEdit.OrganizationId.Value}");
+            }
+            else
+            {
+                if (adToEdit.UserId.Value != userId)
+                    throw new MethodAccessException();
+            }
 
             mapper.Map(adEditRequest, adToEdit);
 
@@ -100,10 +110,26 @@ namespace studo.Services
         public async Task DeleteAsync(Guid adId, Guid userId)
         {
             Ad adToDelete = await Ads.FirstOrDefaultAsync(ad => ad.Id == adId)
-                ?? throw new ArgumentException();
+                ?? throw new ArgumentNullException();
 
-            if (!adToDelete.UserId.HasValue || adToDelete.UserId.Value != userId)
-                throw new MethodAccessException();
+            if (adToDelete.OrganizationId.HasValue)
+            {
+                bool hasRight = await dbContext.Organizations
+                    .Where(org => org.Id == adToDelete.OrganizationId.Value)
+                    .SelectMany(org => org.Users)
+                    .Where(u => u.UserId == userId)
+                    .AnyAsync(userorgright => userorgright.UserOrganizationRight.RightName == Configure.OrganizationRights.CanEditAd.ToString());
+
+                if (!hasRight)
+                    throw new MethodAccessException();
+
+                logger.LogDebug($"Current user {userId} deleted ad {adToDelete.Id} in organization {adToDelete.OrganizationId.Value}");
+            }
+            else
+            {
+                if (adToDelete.UserId.Value != userId)
+                    throw new MethodAccessException();
+            }
 
             dbContext.Ads.Remove(adToDelete);
             await dbContext.SaveChangesAsync();
