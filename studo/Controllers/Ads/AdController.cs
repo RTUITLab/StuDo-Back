@@ -17,6 +17,10 @@ using studo.Services.Interfaces;
 
 namespace studo.Controllers.Ads
 {
+    /// <summary>
+    /// Controller for making operations with ads:
+    /// Create, edit, delete, get all, get one, get user's/organization's ads
+    /// </summary>
     [Produces("application/json")]
     [Route("api/ad")]
     [ApiController]
@@ -38,7 +42,16 @@ namespace studo.Controllers.Ads
             this.organizationManager = organizationManager;
         }
 
+        /// <summary>
+        /// Get all user's ads
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>All user's ads</returns>
+        /// <response code="200">If userId is correct</response>
+        /// <response code="404">If user with passed id doesn't exist</response>
         [HttpGet("user/{userId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<IEnumerable<CompactAdView>>> GetUserAdsAsync(Guid userId)
         {
             bool exist = await userManager.Users
@@ -62,7 +75,16 @@ namespace studo.Controllers.Ads
                 .ToListAsync());
         }
 
+        /// <summary>
+        /// Get all organization's ads
+        /// </summary>
+        /// <param name="orgId"></param>
+        /// <returns>All organization's ads</returns>
+        /// <response code="200">If organizationId is correct</response>
+        /// <response code="404">If organization with passed id doesn't exist</response>
         [HttpGet("organization/{orgId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<IEnumerable<CompactAdView>>> GetOrganizationAdsAsync(Guid orgId)
         {
             bool exist = await organizationManager.Organizations
@@ -86,7 +108,13 @@ namespace studo.Controllers.Ads
                 .ToListAsync());
         }
 
+        /// <summary>
+        /// Get all ads
+        /// </summary>
+        /// <returns>All ads</returns>
+        /// <response code="200">All is correct</response>
         [HttpGet]
+        [ProducesResponseType(200)]
         public async Task<ActionResult<IEnumerable<CompactAdView>>> GetAdsAsync()
         {
             if (adManager.Ads.Count() == 0)
@@ -99,7 +127,18 @@ namespace studo.Controllers.Ads
                 .ToListAsync());
         }
 
+        /// <summary>
+        /// Create ad
+        /// </summary>
+        /// <param name="adCreateRequest"></param>
+        /// <returns>Created ad in a single view</returns>
+        /// <response code="200">Create ad and attach it to current user. Or attach ad to passed organization</response>
+        /// <response code="403">Current user has no rights to create ads in passed organization</response>
+        /// <response code="404">Not such user or organization found</response>
         [HttpPost]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<AdView>> CreateAdAsync([FromBody] AdCreateRequest adCreateRequest)
         {
             var currentUserId = GetCurrentUserId();
@@ -115,20 +154,15 @@ namespace studo.Controllers.Ads
             catch (ArgumentNullException ane)
             {
                 logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
-                if (adCreateRequest.UserId.HasValue)
-                {
-                    logger.LogDebug($"Current user {currentUserId} doesn't exist in database");
-                    return BadRequest($"Current user {currentUserId} doesn't exist in database");
-                }
-                else if (adCreateRequest.OrganizationId.HasValue)
+                if (adCreateRequest.OrganizationId.HasValue)
                 {
                     logger.LogDebug($"Organization {adCreateRequest.OrganizationId.Value} doesn't exist in database");
-                    return BadRequest($"Organization {adCreateRequest.OrganizationId.Value} doesn't exist in database");
+                    return NotFound($"Organization {adCreateRequest.OrganizationId.Value} doesn't exist in database");
                 }
                 else
                 {
-                    logger.LogDebug("No userId or organizationId while creating ad");
-                    return BadRequest("No userId or organizationId while creating ad");
+                    logger.LogDebug($"Current user {currentUserId} doesn't exist in database");
+                    return NotFound($"Current user {currentUserId} doesn't exist in database");
                 }
             }
             catch (MethodAccessException mae)
@@ -144,7 +178,18 @@ namespace studo.Controllers.Ads
             }
         }
 
+        /// <summary>
+        /// Edit ad
+        /// </summary>
+        /// <param name="adEditRequest"></param>
+        /// <returns>Edited ad in a single view</returns>
+        /// <response code="200">If all is ok: user has rights to edit ad (he has rights in organization or it is his ad)</response>
+        /// <response code="403">User tries to edit ad which doesn't belong to him or he has no rights in organization</response>
+        /// <response code="404">Passed ad doesn't exist in database</response>
         [HttpPut]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<AdView>> EditAdAsync([FromBody] AdEditRequest adEditRequest)
         {
             var currentUserId = GetCurrentUserId();
@@ -173,7 +218,18 @@ namespace studo.Controllers.Ads
             }
         }
 
+        /// <summary>
+        /// Delete ad
+        /// </summary>
+        /// <param name="adId"></param>
+        /// <returns>Ad's id, which was deleted</returns>
+        /// <response code="200">If user has rights (it's his ad or he's rights in organization)</response>
+        /// <response code="403">If current user tries to delete foreign ad or has no rights in organization</response>
+        /// <response code="404">Passed ad doesn't exist in database</response>
         [HttpDelete("{adId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<Guid>> DeleteAdAsync(Guid adId)
         {
             var currentUserId = GetCurrentUserId();
@@ -200,7 +256,16 @@ namespace studo.Controllers.Ads
             }
         }
 
+        /// <summary>
+        /// Get one ad
+        /// </summary>
+        /// <param name="adId"></param>
+        /// <returns>One ad</returns>
+        /// <response code="200">If all is okay</response>
+        /// <response code="404">If ad wasn't found</response>
         [HttpGet("{adId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<AdView>> GetAdAsync(Guid adId)
         {
             try
@@ -208,12 +273,12 @@ namespace studo.Controllers.Ads
                 AdView adView = await adManager.Ads
                     .ProjectTo<AdView>(mapper.ConfigurationProvider)
                     .FirstOrDefaultAsync(ad => ad.Id == adId)
-                    ?? throw new ArgumentException();
+                    ?? throw new ArgumentNullException();
                 return Ok(adView);
             }
-            catch (ArgumentException ae)
+            catch (ArgumentNullException ane)
             {
-                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
                 return NotFound($"Can't find ad {adId}");
             }
             catch (Exception ex)
