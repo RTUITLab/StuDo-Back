@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using studo.Data;
 using studo.Models;
 using studo.Models.Requests.Organization;
+using studo.Services.Configure;
 using studo.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -109,7 +110,7 @@ namespace studo.Services
         public async Task DeleteAsync(Guid organizationId, Guid userId)
         {
             Organization orgToDelete = await Organizations.FirstOrDefaultAsync(org => org.Id == organizationId)
-                ?? throw new ArgumentException();
+                ?? throw new ArgumentNullException();
 
             bool hasRight = await Organizations
                 .Where(org => org.Id == organizationId)
@@ -122,6 +123,97 @@ namespace studo.Services
 
             dbContext.Organizations.Remove(orgToDelete);
             await dbContext.SaveChangesAsync();
+        }
+
+        public async Task AttachToRightAsync(AttachDetachRightRequest attachDetachRightRequest, Guid userId)
+        {
+            bool exist = await dbContext.OrganizationRights
+                .AnyAsync(or => or.RightName == attachDetachRightRequest.Right);
+
+            if (!exist)
+            {
+                logger.LogDebug($"Right {attachDetachRightRequest.Right} doesn't exist");
+                throw new ArgumentNullException();
+            }
+
+            exist = await Organizations
+                .AnyAsync(org => org.Id == attachDetachRightRequest.OrganizationId);
+
+            if (!exist)
+            {
+                logger.LogDebug($"Organization {attachDetachRightRequest.OrganizationId} doesn't exist");
+                throw new ArgumentNullException();
+            }
+
+            exist = await userManager.Users
+                .AnyAsync(u => u.Id == attachDetachRightRequest.UserId);
+
+            if (!exist)
+            {
+                logger.LogDebug($"User {attachDetachRightRequest.UserId} doesn't exist");
+                throw new ArgumentNullException();
+            }
+
+            exist = await userManager.Users
+                .AnyAsync(u => u.Id == userId);
+
+            if (!exist)
+            {
+                logger.LogDebug($"Current user {userId} doesn't exist");
+                throw new ArgumentNullException();
+            }
+
+            bool hasRight = await Organizations
+                .Where(org => org.Id == attachDetachRightRequest.OrganizationId)
+                .SelectMany(org => org.Users)
+                .Where(u => u.UserId == userId && u.OrganizationId == attachDetachRightRequest.OrganizationId)
+                .AnyAsync(userorgright => userorgright.UserOrganizationRight.RightName == Configure.OrganizationRights.CanEditRights.ToString());
+
+            if (!hasRight)
+            {
+                logger.LogDebug($"Current user {userId} doesn't have rights to edit rights in organization {attachDetachRightRequest.OrganizationId}");
+                throw new MethodAccessException();
+            }
+
+            exist = await Organizations
+                .Where(org => org.Id == attachDetachRightRequest.OrganizationId)
+                .SelectMany(org => org.Users)
+                .Where(u => u.UserId == attachDetachRightRequest.UserId && u.OrganizationId == attachDetachRightRequest.OrganizationId)
+                .AnyAsync(userorgright => userorgright.UserOrganizationRight.RightName == attachDetachRightRequest.Right);
+
+            if (exist)
+            {
+                logger.LogDebug($"User {attachDetachRightRequest.UserId} already has right {attachDetachRightRequest.Right}");
+                throw new MemberAccessException();
+            }
+
+            Organization organization = await Organizations
+                .Where(org => org.Id == attachDetachRightRequest.OrganizationId)
+                .Include(org => org.Users)
+                .SingleAsync();
+
+            User user = await userManager.FindByIdAsync(attachDetachRightRequest.UserId.ToString());
+
+            OrganizationRight organizationRight = await dbContext.OrganizationRights.FirstOrDefaultAsync(or => or.RightName == attachDetachRightRequest.Right);
+
+            organization.Users.Add(new UserRightsInOrganization
+            {
+                OrganizationId = organization.Id,
+                Organization = organization,
+                UserId = user.Id,
+                User = user,
+                OrganizationRightId = organizationRight.Id,
+                UserOrganizationRight = organizationRight
+            });
+
+            dbContext.Organizations.Update(organization);
+            await dbContext.SaveChangesAsync();
+            logger.LogDebug($"Current user {userId} attached user {attachDetachRightRequest.UserId} to right {attachDetachRightRequest.Right} in organizaiton {attachDetachRightRequest.OrganizationId}");
+        }
+
+        public async Task DetachFromRightAsync(AttachDetachRightRequest attachDetachRightRequest, Guid userId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

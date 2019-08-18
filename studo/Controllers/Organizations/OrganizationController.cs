@@ -145,15 +145,82 @@ namespace studo.Controllers.Organizations
                 await organizationManager.DeleteAsync(orgId, currentUserId);
                 return Ok(orgId);
             }
-            catch (ArgumentException ae)
+            catch (ArgumentNullException ane)
             {
-                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
                 return NotFound($"Can't find organization {orgId}");
             }
             catch (MethodAccessException mae)
             {
                 logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
                 logger.LogDebug($"User {currentUserId} has no rights to delete organization {orgId}");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPost("right/attach")]
+        public async Task<IActionResult> AttachToOrganizationRightAsync([FromBody] AttachDetachRightRequest attachDetachRightRequest)
+        {
+            var currentUserId = GetCurrentUserId();
+            try
+            {
+                await organizationManager.AttachToRightAsync(attachDetachRightRequest, currentUserId);
+                return Ok();
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound("Can't find organization, user or right");
+            }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                logger.LogDebug($"User {attachDetachRightRequest.UserId} isn't a member of an organization {attachDetachRightRequest.OrganizationId}");
+                return BadRequest("User isn't a member of an organization");
+            }
+            catch (MethodAccessException mae)
+            {
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"User {currentUserId} has no rights to edit rights in organization {attachDetachRightRequest.OrganizationId}");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+            catch (MemberAccessException mae)
+            {
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"User {attachDetachRightRequest.UserId} already has right {attachDetachRightRequest.Right} in organization {attachDetachRightRequest.OrganizationId}");
+                return BadRequest("User already has this right in organization");
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPost("right/detach")]
+        public async Task<IActionResult> DetachFromOrganizationRightAsync([FromBody] AttachDetachRightRequest attachDetachRightRequest)
+        {
+            var currentUserId = GetCurrentUserId();
+            try
+            {
+                await organizationManager.DetachFromRightAsync(attachDetachRightRequest, currentUserId);
+                return Ok();
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                logger.LogDebug($"Can't find organization {attachDetachRightRequest.OrganizationId} or user {attachDetachRightRequest.UserId}");
+                return NotFound("Can't find organization or user");
+            }
+            catch (MethodAccessException mae)
+            {
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"User {currentUserId} has no rights to edit rights in organization {attachDetachRightRequest.OrganizationId}");
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
             catch (Exception ex)
