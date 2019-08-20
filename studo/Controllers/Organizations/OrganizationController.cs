@@ -215,13 +215,19 @@ namespace studo.Controllers.Organizations
             {
                 logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
                 logger.LogDebug($"Can't find organization {attachDetachRightRequest.OrganizationId} or user {attachDetachRightRequest.UserId}");
-                return NotFound("Can't find organization or user");
+                return NotFound("Can't find organization, user or right");
             }
             catch (MethodAccessException mae)
             {
                 logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
                 logger.LogDebug($"User {currentUserId} has no rights to edit rights in organization {attachDetachRightRequest.OrganizationId}");
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+            catch (MemberAccessException mae)
+            {
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"User {attachDetachRightRequest.UserId} doesn't have right {attachDetachRightRequest.Right} in organization {attachDetachRightRequest.OrganizationId}");
+                return BadRequest("User doesn't have this right in organization");
             }
             catch (Exception ex)
             {

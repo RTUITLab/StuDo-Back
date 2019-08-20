@@ -213,7 +213,73 @@ namespace studo.Services
 
         public async Task DetachFromRightAsync(AttachDetachRightRequest attachDetachRightRequest, Guid userId)
         {
-            throw new NotImplementedException();
+            bool exist = await dbContext.OrganizationRights
+                .AnyAsync(or => or.RightName == attachDetachRightRequest.Right);
+
+            if (!exist)
+            {
+                logger.LogDebug($"Right {attachDetachRightRequest.Right} doesn't exist");
+                throw new ArgumentNullException();
+            }
+
+            exist = await Organizations
+                .AnyAsync(org => org.Id == attachDetachRightRequest.OrganizationId);
+
+            if (!exist)
+            {
+                logger.LogDebug($"Organization {attachDetachRightRequest.OrganizationId} doesn't exist");
+                throw new ArgumentNullException();
+            }
+
+            exist = await userManager.Users
+                .AnyAsync(u => u.Id == attachDetachRightRequest.UserId);
+
+            if (!exist)
+            {
+                logger.LogDebug($"Current user {userId} doesn't exist");
+                throw new ArgumentNullException();
+            }
+
+            bool hasRight = await Organizations
+                .Where(org => org.Id == attachDetachRightRequest.OrganizationId)
+                .SelectMany(org => org.Users)
+                .Where(u => u.UserId == userId && u.OrganizationId == attachDetachRightRequest.OrganizationId)
+                .AnyAsync(userorgright => userorgright.UserOrganizationRight.RightName == Configure.OrganizationRights.CanEditRights.ToString());
+
+            if (!hasRight)
+            {
+                logger.LogDebug($"Current user {userId} doesn't have rights to edit rights in organization {attachDetachRightRequest.OrganizationId}");
+                throw new MethodAccessException();
+            }
+
+            exist = await Organizations
+                .Where(org => org.Id == attachDetachRightRequest.OrganizationId)
+                .SelectMany(org => org.Users)
+                .Where(u => u.UserId == attachDetachRightRequest.UserId && u.OrganizationId == attachDetachRightRequest.OrganizationId)
+                .AnyAsync(userorgright => userorgright.UserOrganizationRight.RightName == attachDetachRightRequest.Right);
+
+            if (!exist)
+            {
+                logger.LogDebug($"User {attachDetachRightRequest.UserId} doesn't have right {attachDetachRightRequest.Right}");
+                throw new MemberAccessException();
+            }
+
+            Organization organization = await Organizations
+                .Where(org => org.Id == attachDetachRightRequest.OrganizationId)
+                .Include(org => org.Users)
+                .SingleAsync();
+
+            User user = await userManager.FindByIdAsync(attachDetachRightRequest.UserId.ToString());
+
+            OrganizationRight organizationRight = await dbContext.OrganizationRights.FirstOrDefaultAsync(or => or.RightName == attachDetachRightRequest.Right);
+
+            UserRightsInOrganization userRightsInOrganization = organization.Users.FirstOrDefault(userorgright =>
+                userorgright.UserId == user.Id && userorgright.OrganizationId == organization.Id && userorgright.OrganizationRightId == organizationRight.Id);
+
+            organization.Users.Remove(userRightsInOrganization);
+            dbContext.Organizations.Update(organization);
+            await dbContext.SaveChangesAsync();
+            logger.LogDebug($"Current user {userId} detached user {attachDetachRightRequest.UserId} from right {attachDetachRightRequest.Right} in organizaiton {attachDetachRightRequest.OrganizationId}");
         }
     }
 }
