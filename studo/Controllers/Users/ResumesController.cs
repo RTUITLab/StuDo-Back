@@ -17,6 +17,10 @@ using System.Threading.Tasks;
 
 namespace studo.Controllers.Users
 {
+    /// <summary>
+    /// Controller for making operations with resums:
+    /// Create, edit, delete, get all, get one, get user's only
+    /// </summary>
     [Produces("application/json")]
     [Route("api/resumes")]
     [ApiController]
@@ -36,7 +40,13 @@ namespace studo.Controllers.Users
             this.dbContext = dbContext;
         }
 
+        /// <summary>
+        /// Get all resumes
+        /// </summary>
+        /// <returns>All resumes</returns>
+        /// <response code="200">All is okay</response>
         [HttpGet]
+        [ProducesResponseType(200)]
         public async Task<ActionResult<IEnumerable<CompactResumeView>>> GetAllResumesAsync()
         {
             if (await dbContext.Resumes.CountAsync() == 0)
@@ -47,7 +57,16 @@ namespace studo.Controllers.Users
                 .ToListAsync());
         }
 
+        /// <summary>
+        /// Get one resume by id
+        /// </summary>
+        /// <param name="resumeId"></param>
+        /// <returns>One resume</returns>
+        /// <response code="200">All is okay</response>
+        /// <response code="404">When resume with passed id doesn't exist</response>
         [HttpGet("{resumeId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<ResumeView>> GetOneResumeAsync(Guid resumeId)
         {
             ResumeView resumeView = await dbContext.Resumes
@@ -63,7 +82,16 @@ namespace studo.Controllers.Users
             return Ok(resumeView);
         }
 
+        /// <summary>
+        /// Get all user's resumes
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>All user's resumes</returns>
+        /// <response code="200">All is okay</response>
+        /// <response code="404">User with passed id doesn't exist</response>
         [HttpGet("user/{userId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<IEnumerable<CompactResumeView>>> GetAllUsersResumesAsync(Guid userId)
         {
             var user = await userManager.FindByIdAsync(userId.ToString());
@@ -81,7 +109,16 @@ namespace studo.Controllers.Users
             return Ok(resumes);
         }
 
+        /// <summary>
+        /// Create resume
+        /// </summary>
+        /// <param name="createResumeRequest"></param>
+        /// <returns>Created resume</returns>
+        /// <response code="200">Resume is created</response>
+        /// <response code="400">Access token isn't correct</response>
         [HttpPost]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<ResumeView>> CreateResumeAsync([FromBody] CreateResumeRequest createResumeRequest)
         {
             Guid currentUserId = GetCurrentUserId();
@@ -105,7 +142,20 @@ namespace studo.Controllers.Users
                 .SingleAsync(res => res.Id == newResume.Id));
         }
 
+        /// <summary>
+        /// Edit resume
+        /// </summary>
+        /// <param name="editResumeRequest"></param>
+        /// <returns>Edited reume</returns>
+        /// <response code="200">Resume was successfully edited</response>
+        /// <response code="400">Access token isn't correct</response>
+        /// <response code="403">Current user can't edit passed resume</response>
+        /// <response code="404">Can't find resume with passed id</response>
         [HttpPut]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<ResumeView>> EditResumeAsync([FromBody] EditResumeRequest editResumeRequest)
         {
             Guid currentUserId = GetCurrentUserId();
@@ -138,7 +188,20 @@ namespace studo.Controllers.Users
                 .SingleAsync(res => res.Id == resumeToEdit.Id));
         }
 
+        /// <summary>
+        /// Delete resume
+        /// </summary>
+        /// <param name="resumeId"></param>
+        /// <returns>Guid of deleted resume</returns>
+        /// <response code="200">Resume was successfully deleted</response>
+        /// <response code="400">Access token isn't correct</response>
+        /// <response code="403">Current user can't delete passed resume</response>
+        /// <response code="404">Can't find resume with passed id</response>
         [HttpDelete("{resumeId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<Guid>> DeleteResumeAsync(Guid resumeId)
         {
             Guid currentUserId = GetCurrentUserId();
