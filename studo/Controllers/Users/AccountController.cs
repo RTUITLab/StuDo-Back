@@ -25,21 +25,18 @@ namespace studo.Controllers.Users
     public class AccountController : Controller
     {
         private readonly UserManager<User> userManager;
-        private readonly IMapper mapper;
         private readonly IEmailSender emailSender;
         private readonly ILogger<AccountController> logger;
-        private readonly DatabaseContext dbContext;
 
-        public AccountController(UserManager<User> userManager, IMapper mapper,
-            IEmailSender emailSender, ILogger<AccountController> logger,
-            DatabaseContext dbContext)
+        public AccountController(UserManager<User> userManager,
+            IEmailSender emailSender, ILogger<AccountController> logger)
         {
             this.userManager = userManager;
-            this.mapper = mapper;
             this.emailSender = emailSender;
             this.logger = logger;
-            this.dbContext = dbContext;
         }
+
+        // TODO: check who wants to reset or change password
 
         [AllowAnonymous]
         [HttpPost("password/reset")]
@@ -90,70 +87,5 @@ namespace studo.Controllers.Users
                 throw new Exception($"Result of changing password is {result}");
             }
         }
-
-        [HttpPost("resume")]
-        public async Task<ActionResult<ResumeView>> CreateResumeAsync ([FromBody] CreateResumeRequest createResumeRequest)
-        {
-            var newResume = mapper.Map<Resume>(createResumeRequest);
-
-            var current = await GetCurrentUser();
-            newResume.UserId = current.Id;
-            newResume.User = current;
-
-            await dbContext.Resumes.AddAsync(newResume);
-            await dbContext.SaveChangesAsync();
-
-            return Ok(await dbContext.Resumes
-                .ProjectTo<ResumeView>(mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync(res => res.Id == newResume.Id));
-        }
-
-        [HttpPut("resume")]
-        public async Task<ActionResult<ResumeView>> EditResumeAsync ([FromBody] EditResumeRequest editResumeRequest)
-        {
-            var resumeToEdit = await dbContext.Resumes.FindAsync(editResumeRequest.Id);
-            if (resumeToEdit == null)
-                return BadRequest(editResumeRequest);
-
-            if (await GetCurrentUser() != resumeToEdit.User)
-                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            mapper.Map(editResumeRequest, resumeToEdit);
-            await dbContext.SaveChangesAsync();
-
-            return Ok(await dbContext.Resumes
-                .ProjectTo<ResumeView>(mapper.ConfigurationProvider)
-                .FirstOrDefaultAsync(res => res.Id == resumeToEdit.Id));
-        }
-
-        [HttpDelete("resume/{resumeId:guid}")]
-        public async Task<ActionResult<Guid>> DeleteResumeAsync(Guid resumeId)
-        {
-            var resumeToDelete = await dbContext.Resumes.FindAsync(resumeId);
-
-            if (await GetCurrentUser() != resumeToDelete.User)
-                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            dbContext.Resumes.Remove(resumeToDelete);
-            await dbContext.SaveChangesAsync();
-
-            return Ok(resumeId);
-        }
-
-        [HttpGet("resume/{resumeId:guid}")]
-        public async Task<ActionResult<ResumeView>> GetResumeAsync(Guid resumeId)
-            => await dbContext.Resumes
-            .ProjectTo<ResumeView>(mapper.ConfigurationProvider)
-            .FirstOrDefaultAsync(res => res.Id == resumeId);
-
-        [HttpGet("resume")]
-        public async Task<IEnumerable<ResumeView>> GetAllUsersResumesAsync(Guid userId)
-            => await dbContext.Resumes
-            .Where(res => res.UserId == userId)
-            .ProjectTo<ResumeView>(mapper.ConfigurationProvider)
-            .ToListAsync();
-
-        private async Task<User> GetCurrentUser()
-            => await userManager.FindByIdAsync(userManager.GetUserId(User));
     }
 }
