@@ -22,6 +22,17 @@ namespace studo.AutoMapperProfiles
                     .User));
             CreateMap<OrganizationCreateRequest, Organization>();
             CreateMap<OrganizationEditRequest, Organization>();
+
+            // members
+            CreateMap<IGrouping<User, UserRightsInOrganization>, MemberView>()
+                .ForMember(mv => mv.User, map => map.MapFrom(
+                    ig => ig.Key))
+                .ForMember(mv => mv.OrganizationRights, map => map.MapFrom(
+                    ig => ig));
+
+            CreateMap<UserRightsInOrganization, OrganizationRightView>()
+                .ForMember(orv => orv.RightName, map => map.MapFrom(
+                    urio => urio.UserOrganizationRight.RightName));
         }
     }
 }

@@ -19,6 +19,7 @@ namespace studo.Controllers.Organizations
 {
     [Produces("application/json")]
     [Route("api/organization")]
+    [ApiController]
     public class OrganizationController : Controller
     {
         private readonly IMapper mapper;
@@ -35,6 +36,24 @@ namespace studo.Controllers.Organizations
             this.userManager = userManager;
         }
 
+        [HttpGet("members/{orgId:guid}")]
+        public async Task<ActionResult<IEnumerable<MemberView>>> GetAllOrganizationsUsers(Guid orgId)
+        {
+            //if (false)
+            //{
+
+            //}
+
+            var users = await organizationManager.Organizations
+                .SelectMany(org => org.Users)
+                .Where(u => u.OrganizationId == orgId)
+                .GroupBy(u => u.User)
+                .ProjectTo<MemberView>(mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return Ok(users);
+        }
+
         [HttpGet("{orgId:guid}")]
         public async Task<ActionResult<OrganizationView>> GetOneOrganizationAsync(Guid orgId)
         {
@@ -43,12 +62,12 @@ namespace studo.Controllers.Organizations
                 OrganizationView orgView = await organizationManager.Organizations
                     .ProjectTo<OrganizationView>(mapper.ConfigurationProvider)
                     .FirstOrDefaultAsync(org => org.Id == orgId)
-                    ?? throw new ArgumentException();
+                    ?? throw new ArgumentNullException();
                 return Ok(orgView);
             }
-            catch (ArgumentException ae)
+            catch (ArgumentNullException ane)
             {
-                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
                 return NotFound($"Can't find organization {orgId}");
             }
             catch (Exception ex)

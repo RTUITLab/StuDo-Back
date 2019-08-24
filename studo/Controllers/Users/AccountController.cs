@@ -38,6 +38,10 @@ namespace studo.Controllers.Users
 
         // TODO: check who wants to reset or change password
 
+        // TODO: change surname, name and student card number
+
+        // TODO: change email
+
         [AllowAnonymous]
         [HttpPost("password/reset")]
         public async Task<IActionResult> ResetPaswwordAsync ([FromBody] ResetPasswordRequest resetPasswordRequest)
