@@ -39,11 +39,6 @@ namespace studo.Controllers.Organizations
         [HttpGet("members/{orgId:guid}")]
         public async Task<ActionResult<IEnumerable<MemberView>>> GetAllOrganizationsUsers(Guid orgId)
         {
-            //if (false)
-            //{
-
-            //}
-
             var users = await organizationManager.Organizations
                 .SelectMany(org => org.Users)
                 .Where(u => u.OrganizationId == orgId)

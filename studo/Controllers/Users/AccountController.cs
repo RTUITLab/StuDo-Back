@@ -25,20 +25,20 @@ namespace studo.Controllers.Users
     public class AccountController : Controller
     {
         private readonly UserManager<User> userManager;
+        private readonly IMapper mapper;
         private readonly IEmailSender emailSender;
         private readonly ILogger<AccountController> logger;
 
-        public AccountController(UserManager<User> userManager,
+        public AccountController(UserManager<User> userManager, IMapper mapper,
             IEmailSender emailSender, ILogger<AccountController> logger)
         {
             this.userManager = userManager;
+            this.mapper = mapper;
             this.emailSender = emailSender;
             this.logger = logger;
         }
 
         // TODO: check who wants to reset or change password
-
-        // TODO: change surname, name and student card number
 
         // TODO: change email
 
@@ -70,6 +70,9 @@ namespace studo.Controllers.Users
             if (user == null)
                 return BadRequest($"User with email {changePasswordRequest.Email} doesn't exist");
 
+            if (user.Id != GetCurrentUserId())
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+
             if (!await userManager.CheckPasswordAsync(user, changePasswordRequest.OldPassword))
                 return BadRequest("Old password doesn't match current password");
 
@@ -88,8 +91,50 @@ namespace studo.Controllers.Users
                 {
                     logger.LogError($"Result of changing password for user with email {user.Email} is {er}");
                 }
-                throw new Exception($"Result of changing password is {result}");
+                return BadRequest($"Something went wrong");
             }
         }
+
+        [HttpPost("change")]
+        public async Task<ActionResult<UserView>> ChangeUserInfromationAsync([FromBody] ChangeUserInformationRequest changeUserInformationRequest)
+        {
+            try
+            {
+                if (changeUserInformationRequest.Id != GetCurrentUserId())
+                    throw new MethodAccessException();
+
+                var currentUser = await userManager.FindByIdAsync(changeUserInformationRequest.Id.ToString())
+                    ?? throw new ArgumentNullException();
+
+                mapper.Map(changeUserInformationRequest, currentUser);
+                var result = await userManager.UpdateAsync(currentUser);
+                if (result.Succeeded)
+                {
+                    return Ok(mapper.Map<UserView>(currentUser));
+                }
+                else
+                {
+                    foreach (var er in result.Errors)
+                    {
+                        logger.LogError($"Result of changing user information is {er}");
+                    }
+                    return BadRequest("Something went wrong");
+                }
+            }
+            catch(ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound($"Can't find current user");
+            }
+            catch(MethodAccessException mae)
+            {
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"User {GetCurrentUserId()} can't change {changeUserInformationRequest.Id} user information");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        }
+
+        private Guid GetCurrentUserId()
+            => Guid.Parse(userManager.GetUserId(User));
     }
 }

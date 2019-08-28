@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace studo.Models.Requests.Users
 {
@@ -10,8 +6,7 @@ namespace studo.Models.Requests.Users
     {
         [Required]
         [EmailAddress]
-        // User email
-        public string Email { get; set; }
+        public string Email { get; set; } // User email
         [Required]
         public string OldPassword { get; set; }
         [Required]
