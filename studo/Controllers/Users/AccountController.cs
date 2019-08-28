@@ -38,10 +38,6 @@ namespace studo.Controllers.Users
             this.logger = logger;
         }
 
-        // TODO: check who wants to reset or change password
-
-        // TODO: change email
-
         [AllowAnonymous]
         [HttpPost("password/reset")]
         public async Task<IActionResult> ResetPaswwordAsync ([FromBody] ResetPasswordRequest resetPasswordRequest)
@@ -66,9 +62,9 @@ namespace studo.Controllers.Users
         {
             // TODO: IF IT WASN'T YOU PLEASE GO HERE TO RESET PASSWORD
             // send email that your password was reseted!!!
-            var user = await userManager.FindByEmailAsync(changePasswordRequest.Email);
+            var user = await userManager.FindByIdAsync(changePasswordRequest.Id.ToString());
             if (user == null)
-                return BadRequest($"User with email {changePasswordRequest.Email} doesn't exist");
+                return NotFound($"Current user {changePasswordRequest.Id} doesn't exist");
 
             if (user.Id != GetCurrentUserId())
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -95,7 +91,7 @@ namespace studo.Controllers.Users
             }
         }
 
-        [HttpPost("change")]
+        [HttpPost("change/info")]
         public async Task<ActionResult<UserView>> ChangeUserInfromationAsync([FromBody] ChangeUserInformationRequest changeUserInformationRequest)
         {
             try
@@ -133,6 +129,53 @@ namespace studo.Controllers.Users
                 return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
             }
         }
+
+        [HttpPost("change/email")]
+        public async Task<IActionResult> ChangeEmailAsync([FromBody] ChangeEmailRequest changeEmailRequest)
+        {
+            try
+            {
+                if (GetCurrentUserId() != changeEmailRequest.Id)
+                    throw new MethodAccessException();
+
+                bool exist = await userManager.Users.AnyAsync(u => u.Email == changeEmailRequest.NewEmail);
+                if (exist)
+                    throw new MethodAccessException();
+
+                var currentUser = await userManager.FindByIdAsync(changeEmailRequest.Id.ToString())
+                    ?? throw new ArgumentNullException();
+
+                if (currentUser.Email != changeEmailRequest.OldEmail)
+                    throw new ArgumentException();
+
+                string emailConfirmationToken = await userManager.GenerateChangeEmailTokenAsync(currentUser, changeEmailRequest.NewEmail);
+                var callbackUrl = Url.Page(
+                    "/Account/ConfirmEmail",
+                    pageHandler: null,
+                    values: new { userId = changeEmailRequest.Id, token = emailConfirmationToken, newEmail = changeEmailRequest.NewEmail },
+                    protocol: "https");
+
+                await emailSender.SendEmailConfirmationAsync(changeEmailRequest.NewEmail, callbackUrl);
+                return Ok();
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound($"Can't find current user");
+            }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                return BadRequest("Old email isn't match current user's email");
+            }
+            catch (MethodAccessException mae)
+            {
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"User {GetCurrentUserId()} can't change {changeEmailRequest.Id} email to {changeEmailRequest.NewEmail}");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        }
+
 
         private Guid GetCurrentUserId()
             => Guid.Parse(userManager.GetUserId(User));

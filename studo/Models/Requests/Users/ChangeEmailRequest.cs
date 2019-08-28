@@ -3,13 +3,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace studo.Models.Requests.Users
 {
-    public class ChangePasswordRequest
+    public class ChangeEmailRequest
     {
         [Required]
         public Guid Id { get; set; }
         [Required]
-        public string OldPassword { get; set; }
+        [EmailAddress]
+        public string OldEmail { get; set; }
         [Required]
-        public string NewPassword { get; set; }
+        [EmailAddress]
+        public string NewEmail { get; set; }
     }
 }

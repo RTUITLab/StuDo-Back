@@ -16,14 +16,13 @@ namespace studo.Pages.Account
         private readonly UserManager<User> userManager;
         public bool IsOk { get; set; }
 
-
         public ConfirmEmailModel(UserManager<User> userManager)
         {
             this.userManager = userManager;
             IsOk = false;
         }
 
-        public async Task<IActionResult> OnGetAsync (string userId, string token)
+        public async Task<IActionResult> OnGetAsync (string userId, string token, string newEmail = "")
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
                 return NotFound();
@@ -35,13 +34,27 @@ namespace studo.Pages.Account
             if (user == null)
                 return BadRequest("User is null");
 
-            var result = await userManager.ConfirmEmailAsync(user, token);
-            if (result.Succeeded)
-                IsOk = true;
+            if (newEmail != "")
+            {
+                var result = await userManager.ChangeEmailAsync(user, newEmail, token);
+                if (result.Succeeded)
+                    IsOk = true;
+                else
+                {
+                    foreach (var error in result.Errors)
+                        ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
             else
             {
-                foreach (var error in result.Errors)
-                    ModelState.AddModelError(string.Empty, error.Description);
+                var result = await userManager.ConfirmEmailAsync(user, token);
+                if (result.Succeeded)
+                    IsOk = true;
+                else
+                {
+                    foreach (var error in result.Errors)
+                        ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
             return Page();
         }
