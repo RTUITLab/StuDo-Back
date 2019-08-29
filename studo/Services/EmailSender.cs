@@ -23,16 +23,16 @@ namespace studo.Services
 
         public async Task SendEmailConfirmationAsync(string email, string redirectUrl)
         {
-            //var message = $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(redirectUrl)}'>clicking here</a>.";
             var message = (await GetConfirmEmailTemplateAsync())
                 .Replace("%url%", $"{HtmlEncoder.Default.Encode(redirectUrl)}");
-            await SendEmailAsync(email, "Confirm your email", message);
+            await SendEmailAsync(email, "Подтвердите почту", message);
         }
 
         public async Task SendResetPasswordEmail(string email, string redirectUrl)
         {
-            var message = $"Please click <a href='{HtmlEncoder.Default.Encode(redirectUrl)}'>here</a> to reset your password";
-            await SendEmailAsync(email, "Reset password", message);
+            var message = (await GetResetPasswordTemplateAsync())
+                .Replace("%url%", $"{ HtmlEncoder.Default.Encode(redirectUrl)}");
+            await SendEmailAsync(email, "Восстановление пароля", message);
         }
 
         private async Task SendEmailAsync(string email, string subject, string message)
@@ -59,5 +59,8 @@ namespace studo.Services
 
         private Task<string> GetConfirmEmailTemplateAsync()
             => new HttpClient().GetStringAsync(options.ConfirmEmailTemplateUrl);
+
+        private Task<string> GetResetPasswordTemplateAsync()
+            => new HttpClient().GetStringAsync(options.ResetPasswordTemplateUrl);
     }
 }
