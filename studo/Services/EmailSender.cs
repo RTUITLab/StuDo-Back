@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using studo.Models.Options;
 using studo.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Mail;
@@ -15,10 +12,12 @@ namespace studo.Services
     public class EmailSender : IEmailSender
     {
         private readonly EmailSenderOptions options;
+        private readonly HttpClient httpClient;
 
-        public EmailSender(IOptions<EmailSenderOptions> options)
+        public EmailSender(IOptions<EmailSenderOptions> options, IHttpClientFactory httpClientFactory)
         {
             this.options = options.Value;
+            this.httpClient = httpClientFactory.CreateClient();
         }
 
         public async Task SendEmailConfirmationAsync(string email, string redirectUrl)
@@ -58,9 +57,9 @@ namespace studo.Services
         }
 
         private Task<string> GetConfirmEmailTemplateAsync()
-            => new HttpClient().GetStringAsync(options.ConfirmEmailTemplateUrl);
+            => httpClient.GetStringAsync(options.ConfirmEmailTemplateUrl);
 
         private Task<string> GetResetPasswordTemplateAsync()
-            => new HttpClient().GetStringAsync(options.ResetPasswordTemplateUrl);
+            => httpClient.GetStringAsync(options.ResetPasswordTemplateUrl);
     }
 }

@@ -20,7 +20,7 @@ namespace studo.LogsViewer
             wsClient.Options.SetRequestHeader("Authorization", webSocketsOptions.SecretKey);
             await wsClient.ConnectAsync(new Uri(webSocketsOptions.Url), CancellationToken.None);
 
-            var array = new byte[1024];
+            var array = new byte[4096];
             Console.WriteLine($"Ready to listen\t\t{webSocketsOptions.Url}\n");
             while(true)
             {

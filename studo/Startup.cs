@@ -85,6 +85,10 @@ namespace studo
                     };
                 });
 
+            // Add http client factory
+            services.AddHttpClient<IEmailSender, EmailSender>();
+
+            // Add transients for interfaces
             services.AddTransient<IJwtFactory, JwtFactory>();
             services.AddTransient<IAdManager, AdManager>();
             services.AddTransient<IOrganizationManager, OrganizationManager>();
