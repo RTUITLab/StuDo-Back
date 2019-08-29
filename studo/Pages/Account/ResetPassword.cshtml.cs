@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -36,7 +33,10 @@ namespace studo.Pages.Account
 
             var user = await userManager.FindByIdAsync(userId);
             if (user == null)
+            {
+
                 return BadRequest("User is null");
+            }
 
             User = user;
             Token = token;
@@ -47,18 +47,17 @@ namespace studo.Pages.Account
         {
             if (!NewPassword.Equals(NewPasswordConfirm))
             {
-                ModelState.AddModelError(NewPassword, "Passwords doesn't match");
+                ModelState.AddModelError(nameof(NewPassword), "Passwords doesn't match");
                 return Page();
             }
 
-            var user = await userManager.FindByEmailAsync(User.Email);
-            if(await userManager.CheckPasswordAsync(user, NewPasswordConfirm))
+            if(await userManager.CheckPasswordAsync(User, NewPasswordConfirm))
             {
-                ModelState.AddModelError(NewPassword, "New password can't equals your previous password");
+                ModelState.AddModelError(nameof(NewPassword), "New password can't equals your previous password");
                 return Page();
             }
 
-            var result = await userManager.ResetPasswordAsync(user, Token, NewPassword);
+            var result = await userManager.ResetPasswordAsync(User, Token, NewPassword);
             if (result.Succeeded)
                 IsOk = true;
             else

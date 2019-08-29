@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
 using studo.Models;
 
 namespace studo.Pages.Account
@@ -14,6 +12,7 @@ namespace studo.Pages.Account
     public class ConfirmEmailModel : PageModel
     {
         private readonly UserManager<User> userManager;
+
         public bool IsOk { get; set; }
 
         public ConfirmEmailModel(UserManager<User> userManager)
@@ -27,14 +26,14 @@ namespace studo.Pages.Account
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
                 return NotFound();
 
-            if (!ModelState.IsValid)
-                return Page();
-
             var user = await userManager.FindByIdAsync(userId);
             if (user == null)
-                return BadRequest("User is null");
+            {
+                ModelState.AddModelError("User", "Can't find user");
+                return Page();
+            }
 
-            if (newEmail != "")
+            if (!string.IsNullOrEmpty(newEmail))
             {
                 var result = await userManager.ChangeEmailAsync(user, newEmail, token);
                 if (result.Succeeded)

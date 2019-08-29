@@ -2,11 +2,11 @@
 @model studo.Pages.Account.ConfirmEmailModel
 @{
     ViewData["Title"] = "Confirm email";
-    Layout = null;
+    Layout = "_LayoutEmail";
 }
 
 <div class="container">
-    <div class="validation" asp-validation-summary="All" />
+    <div class="validation" asp-validation-summary="All" ></div>
     @if (Model.IsOk)
     {
         <h2>Your email was successfully confirmed</h2>

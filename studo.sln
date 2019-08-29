@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "studo.LogsViewer", "studo.L
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "studo.LogsModel", "studo.LogsModel\studo.LogsModel.csproj", "{0507CC28-407A-40AA-BAA5-A3D4EE697C3B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "studo.Decryptor", "studo.Decryptor\studo.Decryptor.csproj", "{2B36B49B-E426-4EC4-A3E5-2057756C3243}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "studo.Decryptor", "studo.Decryptor\studo.Decryptor.csproj", "{2B36B49B-E426-4EC4-A3E5-2057756C3243}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
