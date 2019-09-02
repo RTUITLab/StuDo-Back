@@ -109,7 +109,10 @@ namespace studo.Services
 
         public async Task DeleteAsync(Guid organizationId, Guid userId)
         {
-            Organization orgToDelete = await Organizations.FirstOrDefaultAsync(org => org.Id == organizationId)
+            Organization orgToDelete = await Organizations
+                .Where(org => org.Id == organizationId)
+                .Include(org => org.Ads)
+                .SingleAsync()
                 ?? throw new ArgumentNullException();
 
             bool hasRight = await Organizations
@@ -121,6 +124,7 @@ namespace studo.Services
             if (!hasRight)
                 throw new MethodAccessException();
 
+            dbContext.Ads.RemoveRange(orgToDelete.Ads);
             dbContext.Organizations.Remove(orgToDelete);
             await dbContext.SaveChangesAsync();
         }
