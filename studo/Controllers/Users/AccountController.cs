@@ -91,6 +91,21 @@ namespace studo.Controllers.Users
             }
         }
 
+        [HttpGet("{userId:guid}")]
+        public async Task<ActionResult<UserView>> GetOneUserAsync(Guid userId)
+        {
+            try
+            {
+                var user = await userManager.FindByIdAsync(userId.ToString());
+                return Ok(mapper.Map<UserView>(user));
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound($"Can't find user");
+            }
+        }
+
         [HttpPost("change/info")]
         public async Task<ActionResult<UserView>> ChangeUserInfromationAsync([FromBody] ChangeUserInformationRequest changeUserInformationRequest)
         {
