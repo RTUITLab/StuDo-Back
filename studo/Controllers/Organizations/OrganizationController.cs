@@ -73,7 +73,7 @@ namespace studo.Controllers.Organizations
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrganizationView>>> GetAllOrganizations()
+        public async Task<ActionResult<IEnumerable<OrganizationView>>> GetAllOrganizations(bool? canPublish, bool? member)
         {
             if (organizationManager.Organizations.Count() == 0)
                 return Ok(new List<OrganizationView>());

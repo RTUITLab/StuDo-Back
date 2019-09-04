@@ -1,5 +1,6 @@
 trigger:
   - develop
+  - master
 
 name: $(BuildID)
 pool:
@@ -22,6 +23,19 @@ steps:
     modifyOutputPath: false
 
 - task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: stu-do-back-develop'
+  displayName: 'Publish Artifact: stu-do-back-build'
   inputs:
-    ArtifactName: 'stu-do-back-develop'
+    ArtifactName: 'stu-do-back-build'
+
+- task: CopyFiles@2
+  displayName: 'copy deploy artifact'
+  inputs:
+    SourceFolder: 'Deploy'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    CleanTargetFolder: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: stu-do-back-deploy'
+  inputs:
+    ArtifactName: 'stu-do-back-deploy'
