@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -7,18 +6,18 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using studo.Data;
 using studo.Models;
 using studo.Models.Requests.Users;
 using studo.Models.Responses.Users;
 using studo.Services.Interfaces;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace studo.Controllers.Users
 {
+    /// <summary>
+    /// Controller for making operations with users account
+    /// </summary>
     [Produces("application/json")]
     [Route("api/user")]
     [ApiController]
@@ -38,8 +37,17 @@ namespace studo.Controllers.Users
             this.logger = logger;
         }
 
+        /// <summary>
+        /// Reset password
+        /// </summary>
+        /// <param name="resetPasswordRequest"></param>
+        /// <returns>All is ok</returns>
+        /// <response code="200">Recover email was successfully sent</response>
+        /// <response code="400">Can't find user</response>
         [AllowAnonymous]
         [HttpPost("password/reset")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> ResetPaswwordAsync ([FromBody] ResetPasswordRequest resetPasswordRequest)
         {
             var user = await userManager.FindByEmailAsync(resetPasswordRequest.Email);
@@ -57,7 +65,18 @@ namespace studo.Controllers.Users
             return Ok();
         }
 
+        /// <summary>
+        /// Change user's password
+        /// </summary>
+        /// <param name="changePasswordRequest"></param>
+        /// <returns>All is ok</returns>
+        /// <response code="200">Password was changed</response>
+        /// <response code="400">Old password doesn't match or new password can't match old password</response>
+        /// <response code="404">User wasn't found</response>
         [HttpPost("password/change")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> ChangePasswordAsync ([FromBody] ChangePasswordRequest changePasswordRequest)
         {
             // TODO: IF IT WASN'T YOU PLEASE GO HERE TO RESET PASSWORD
@@ -87,16 +106,26 @@ namespace studo.Controllers.Users
                 {
                     logger.LogError($"Result of changing password for user with email {user.Email} is {er}");
                 }
-                return BadRequest($"Something went wrong");
+                return StatusCode(500);
             }
         }
 
+        /// <summary>
+        /// Get information about one user
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>One user information</returns>
+        /// <response code="200">All is ok</response>
+        /// <response code="404">Can't find user</response>
         [HttpGet("{userId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<UserView>> GetOneUserAsync(Guid userId)
         {
             try
             {
-                var user = await userManager.FindByIdAsync(userId.ToString());
+                var user = await userManager.FindByIdAsync(userId.ToString())
+                    ?? throw new ArgumentNullException();
                 return Ok(mapper.Map<UserView>(user));
             }
             catch (ArgumentNullException ane)
@@ -106,7 +135,18 @@ namespace studo.Controllers.Users
             }
         }
 
+        /// <summary>
+        /// Change user's information
+        /// </summary>
+        /// <param name="changeUserInformationRequest"></param>
+        /// <returns>New user's information</returns>
+        /// <response code="200">All is ok. Information was changed</response>
+        /// <response code="403">Current user can't change another's information</response>
+        /// <response code="404">Can't find current user</response>
         [HttpPost("change/info")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<UserView>> ChangeUserInfromationAsync([FromBody] ChangeUserInformationRequest changeUserInformationRequest)
         {
             try
@@ -129,7 +169,7 @@ namespace studo.Controllers.Users
                     {
                         logger.LogError($"Result of changing user information is {er}");
                     }
-                    return BadRequest("Something went wrong");
+                    return StatusCode(500);
                 }
             }
             catch(ArgumentNullException ane)
@@ -145,7 +185,20 @@ namespace studo.Controllers.Users
             }
         }
 
+        /// <summary>
+        /// Change user's email
+        /// </summary>
+        /// <param name="changeEmailRequest"></param>
+        /// <returns>Email to new address</returns>
+        /// <response code="200">All is ok</response>
+        /// <response code="400">New email can't match old email</response>
+        /// <response code="403">Current user can't change another's email address</response>
+        /// <response code="404">Can't find current user</response>
         [HttpPost("change/email")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> ChangeEmailAsync([FromBody] ChangeEmailRequest changeEmailRequest)
         {
             try
