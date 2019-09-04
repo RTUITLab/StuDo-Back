@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using studo.Data;
@@ -124,21 +125,16 @@ namespace studo.Services.Configure
 
         private async Task AddOrganizationRights()
         {
-            if (dbContext.OrganizationRights.Any())
+            var rights = Enum.GetValues(typeof(OrganizationRights)).Cast<OrganizationRights>();
+            foreach (var right in rights)
             {
-                // delete all rights
-                var rights = dbContext.OrganizationRights.ToList();
-                dbContext.OrganizationRights.RemoveRange(rights);
-            }
+                if (await dbContext.OrganizationRights.AnyAsync(r => r.RightName == right.ToString()))
+                    continue;
 
-            var values = Enum.GetValues(typeof(OrganizationRights)).Cast<OrganizationRights>();
-            foreach (var value in values)
-            {
-                var right = new OrganizationRight
+                await dbContext.OrganizationRights.AddAsync(new OrganizationRight
                 {
-                    RightName = value.ToString()
-                };
-                dbContext.OrganizationRights.Add(right);
+                    RightName = right.ToString()
+                });
             }
 
             await dbContext.SaveChangesAsync();

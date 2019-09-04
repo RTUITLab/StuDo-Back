@@ -6,6 +6,7 @@
         CanEditRights,
         CanEditAd,
         CanEditOrganizationInformation,
-        CanDeleteOrganization
+        CanDeleteOrganization,
+        Member
     }
 }
