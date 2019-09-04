@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using studo.Data;
 using studo.Models;
 using studo.Models.Options;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebApp.Configure.Models.Configure.Interfaces;
@@ -18,21 +18,41 @@ namespace studo.Services.Configure
         private readonly ILogger<FillDb> logger;
         private readonly UserManager<User> userManager;
         private readonly RoleManager<Role> roleManager;
+        private readonly DatabaseContext dbContext;
+
+        private int tryCount = 10;
+        private TimeSpan tryPeriod = TimeSpan.FromSeconds(5);
 
         public FillDb(IOptions<FillDbOptions> options, ILogger<FillDb> logger,
-            UserManager<User> userManager, RoleManager<Role> roleManager)
+            UserManager<User> userManager, RoleManager<Role> roleManager,
+            DatabaseContext dbContext)
         {
             this.options = options;
             this.logger = logger;
             this.userManager = userManager;
             this.roleManager = roleManager;
+            this.dbContext = dbContext;
         }
 
         public async Task Configure()
         {
-            await AddDefaultUser();
-            await AddRoles();
-            await AddRolesToDefaultUser();
+            try
+            {
+                await AddDefaultUser();
+                await AddRoles();
+                await AddRolesToDefaultUser();
+                await AddOrganizationRights();
+            }
+            catch (Exception ex)
+            {
+                if (tryCount == 0)
+                    throw;
+
+                logger.LogWarning(ex, "Error while filling Database by default data");
+                tryCount--;
+                await Task.Delay(tryPeriod);
+                await Configure();
+            }
         }
 
         private async Task AddDefaultUser()
@@ -101,6 +121,23 @@ namespace studo.Services.Configure
             var adminRole = await roleManager.FindByNameAsync(RolesConstants.Admin);
             await userManager.AddToRoleAsync(user, adminRole.Name);
             logger.LogDebug($"To '{user.Email}' was added '{adminRole.Name}' role");
+        }
+
+        private async Task AddOrganizationRights()
+        {
+            var rights = Enum.GetValues(typeof(OrganizationRights)).Cast<OrganizationRights>();
+            foreach (var right in rights)
+            {
+                if (await dbContext.OrganizationRights.AnyAsync(r => r.RightName == right.ToString()))
+                    continue;
+
+                await dbContext.OrganizationRights.AddAsync(new OrganizationRight
+                {
+                    RightName = right.ToString()
+                });
+            }
+
+            await dbContext.SaveChangesAsync();
         }
     }
 }

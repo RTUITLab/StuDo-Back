@@ -37,7 +37,6 @@ namespace studo.Services.Autorize
 
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
             return encodedJwt;
-
         }
 
         public string GenerateRefreshToken(Guid userId)

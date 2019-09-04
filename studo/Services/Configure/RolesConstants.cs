@@ -1,26 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace studo.Services.Configure
+﻿namespace studo.Services.Configure
 {
     public static class RolesConstants
     {
-        public static string Admin
-        {
-            get
-            {
-                return "admin";
-            }
-        }
+        public const string Admin = "admin";
 
-        public static string User
-        {
-            get
-            {
-                return "user";
-            }
-        }
+        public const string User = "user";
     }
 }

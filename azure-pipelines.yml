@@ -1,0 +1,41 @@
+trigger:
+  - develop
+  - master
+
+name: $(BuildID)
+pool:
+  name: Default
+steps:
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet restore'
+  inputs:
+    command: 'restore'
+    feedsToUse: 'select'
+    versioningScheme: 'off'
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet publish'
+  inputs:
+    command: publish
+    publishWebProjects: false
+    projects: studo/studo.csproj
+    arguments: '--no-restore -o $(Build.ArtifactStagingDirectory)' 
+    zipAfterPublish: false
+    modifyOutputPath: false
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: stu-do-back-build'
+  inputs:
+    ArtifactName: 'stu-do-back-build'
+
+- task: CopyFiles@2
+  displayName: 'copy deploy artifact'
+  inputs:
+    SourceFolder: 'Deploy'
+    Contents: '**'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    CleanTargetFolder: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: stu-do-back-deploy'
+  inputs:
+    ArtifactName: 'stu-do-back-deploy'

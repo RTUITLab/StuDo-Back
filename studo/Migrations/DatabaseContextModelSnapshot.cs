@@ -15,7 +15,7 @@ namespace studo.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "2.2.3-servicing-35854")
+                .HasAnnotation("ProductVersion", "2.2.6-servicing-10079")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
@@ -107,13 +107,15 @@ namespace studo.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<Guid>("CreatorId");
-
-                    b.Property<int>("CreatorType");
+                    b.Property<DateTime>("BeginTime");
 
                     b.Property<string>("Description");
 
+                    b.Property<DateTime>("EndTime");
+
                     b.Property<string>("Name");
+
+                    b.Property<Guid?>("OrganizationId");
 
                     b.Property<string>("ShortDescription");
 
@@ -121,9 +123,59 @@ namespace studo.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("OrganizationId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Ads");
+                });
+
+            modelBuilder.Entity("studo.Models.Organization", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("Name");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("[Name] IS NOT NULL");
+
+                    b.ToTable("Organizations");
+                });
+
+            modelBuilder.Entity("studo.Models.OrganizationRight", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("RightName");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("OrganizationRights");
+                });
+
+            modelBuilder.Entity("studo.Models.Resume", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Description");
+
+                    b.Property<string>("Name");
+
+                    b.Property<Guid>("UserId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Resumes");
                 });
 
             modelBuilder.Entity("studo.Models.Role", b =>
@@ -207,6 +259,23 @@ namespace studo.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
+            modelBuilder.Entity("studo.Models.UserRightsInOrganization", b =>
+                {
+                    b.Property<Guid>("UserId");
+
+                    b.Property<Guid>("OrganizationId");
+
+                    b.Property<Guid>("OrganizationRightId");
+
+                    b.HasKey("UserId", "OrganizationId", "OrganizationRightId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("OrganizationRightId");
+
+                    b.ToTable("UserRightsInOrganization");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("studo.Models.Role")
@@ -254,9 +323,39 @@ namespace studo.Migrations
 
             modelBuilder.Entity("studo.Models.Ad", b =>
                 {
-                    b.HasOne("studo.Models.User")
+                    b.HasOne("studo.Models.Organization", "Organization")
+                        .WithMany("Ads")
+                        .HasForeignKey("OrganizationId");
+
+                    b.HasOne("studo.Models.User", "User")
                         .WithMany("Ads")
                         .HasForeignKey("UserId");
+                });
+
+            modelBuilder.Entity("studo.Models.Resume", b =>
+                {
+                    b.HasOne("studo.Models.User", "User")
+                        .WithMany("Resumes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("studo.Models.UserRightsInOrganization", b =>
+                {
+                    b.HasOne("studo.Models.Organization", "Organization")
+                        .WithMany("Users")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("studo.Models.OrganizationRight", "UserOrganizationRight")
+                        .WithMany("UserRightsInOrganizations")
+                        .HasForeignKey("OrganizationRightId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("studo.Models.User", "User")
+                        .WithMany("Organizations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }

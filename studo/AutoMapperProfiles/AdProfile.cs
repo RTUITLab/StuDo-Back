@@ -11,8 +11,10 @@ namespace studo.AutoMapperProfiles
         {
             CreateMap<AdCreateRequest, Ad>();
             CreateMap<AdEditRequest, Ad>();
-            CreateMap<Ad, CompactAdView>();
             CreateMap<Ad, AdView>();
+            CreateMap<Ad, CompactAdView>()
+                .ForMember(cav => cav.UserName, map => map.MapFrom(a => a.User.Firstname + " " + a.User.Surname))
+                .ForMember(cav => cav.OrganizationName, map => map.MapFrom(a => a.Organization.Name));
         }
     }
 }
