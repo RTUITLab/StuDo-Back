@@ -194,8 +194,8 @@ namespace studo.Controllers.Organizations
             catch (ArgumentException ae)
             {
                 logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
-                logger.LogDebug($"User {attachDetachRightRequest.UserId} isn't a member of an organization {attachDetachRightRequest.OrganizationId}");
-                return BadRequest("User isn't a member of an organization");
+                logger.LogDebug($"Can't attacth user {attachDetachRightRequest.UserId} to right {attachDetachRightRequest.Right}");
+                return BadRequest("Can't attach to this right");
             }
             catch (MethodAccessException mae)
             {
@@ -230,6 +230,12 @@ namespace studo.Controllers.Organizations
                 logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
                 logger.LogDebug($"Can't find organization {attachDetachRightRequest.OrganizationId} or user {attachDetachRightRequest.UserId}");
                 return NotFound("Can't find organization, user or right");
+            }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                logger.LogDebug($"Can't detach user {attachDetachRightRequest.UserId} from right {attachDetachRightRequest.Right}");
+                return BadRequest("Can't detach from this right");
             }
             catch (MethodAccessException mae)
             {

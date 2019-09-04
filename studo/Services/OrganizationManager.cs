@@ -140,6 +140,12 @@ namespace studo.Services
                 throw new ArgumentNullException();
             }
 
+            if (attachDetachRightRequest.Right == Configure.OrganizationRights.CanDeleteOrganization.ToString())
+            {
+                logger.LogDebug($"Right {attachDetachRightRequest.Right} can't be attached");
+                throw new ArgumentException();
+            }
+
             exist = await Organizations
                 .AnyAsync(org => org.Id == attachDetachRightRequest.OrganizationId);
 
@@ -224,6 +230,12 @@ namespace studo.Services
             {
                 logger.LogDebug($"Right {attachDetachRightRequest.Right} doesn't exist");
                 throw new ArgumentNullException();
+            }
+
+            if (attachDetachRightRequest.Right == Configure.OrganizationRights.CanDeleteOrganization.ToString())
+            {
+                logger.LogDebug($"Can't detach from right {attachDetachRightRequest.Right}");
+                throw new ArgumentException();
             }
 
             exist = await Organizations
