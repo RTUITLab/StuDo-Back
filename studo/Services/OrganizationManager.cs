@@ -76,20 +76,6 @@ namespace studo.Services
 
         public async Task<IQueryable<Organization>> EditAsync(OrganizationEditRequest organizationEditRequest, Guid userId)
         {
-            bool exist = await Organizations
-                .Where(org => org.Id == organizationEditRequest.Id)
-                .AnyAsync();
-
-            if (!exist)
-                throw new ArgumentNullException();
-
-            exist = await Organizations
-                .Where(org => org.Name == organizationEditRequest.Name)
-                .AnyAsync();
-
-            if (exist)
-                throw new ArgumentException();
-
             bool hasRight = await Organizations
                 .Where(org => org.Id == organizationEditRequest.Id)
                 .SelectMany(org => org.Users)
@@ -99,8 +85,18 @@ namespace studo.Services
             if (!hasRight)
                 throw new MethodAccessException();
 
-            Organization orgToEdit = mapper.Map<Organization>(organizationEditRequest);
+            Organization orgToEdit = await Organizations
+                .FirstOrDefaultAsync(org => org.Id == organizationEditRequest.Id);
 
+            if (orgToEdit == null)
+                throw new ArgumentNullException();
+
+            if (orgToEdit.Name != organizationEditRequest.Name && await Organizations
+                                                                            .Where(org => org.Name == organizationEditRequest.Name)
+                                                                            .AnyAsync())
+                throw new ArgumentException();
+
+            mapper.Map(organizationEditRequest, orgToEdit);
             dbContext.Organizations.Update(orgToEdit);
             await dbContext.SaveChangesAsync();
             return Organizations
