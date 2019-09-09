@@ -6,9 +6,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using studo.Extensions;
 using studo.Models;
 using studo.Models.Requests.Organization;
 using studo.Models.Responses.Organization;
+using studo.Services.Configure;
 using studo.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -73,15 +75,16 @@ namespace studo.Controllers.Organizations
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrganizationView>>> GetAllOrganizations(bool? canPublish, bool? member)
+        public async Task<ActionResult<IEnumerable<OrganizationView>>> GetAllOrganizations(bool canPublish, bool member)
         {
-            if (organizationManager.Organizations.Count() == 0)
-                return Ok(new List<OrganizationView>());
-
             return Ok(
                 await organizationManager.Organizations
-                .ProjectTo<OrganizationView>(mapper.ConfigurationProvider)
-                .ToListAsync());
+                    .If(canPublish, orgs => orgs
+                        .Where(org => org.Users.Any(user => user.UserOrganizationRight.RightName == OrganizationRights.CanEditAd.ToString() && user.UserId == GetCurrentUserId())))
+                    .If(member, orgs => orgs
+                        .Where(org => org.Users.Any(user => user.UserOrganizationRight.RightName == OrganizationRights.Member.ToString() && user.UserId == GetCurrentUserId())))
+                    .ProjectTo<OrganizationView>(mapper.ConfigurationProvider)
+                    .ToListAsync());
         }
 
         [HttpPost]
