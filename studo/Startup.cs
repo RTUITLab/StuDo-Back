@@ -96,9 +96,13 @@ namespace studo
             services.AddSingleton<ILogsWebSocketHandler>(LogsWebSocketHandler.Instance);
 
             // add database context
-            string connection = Configuration.GetConnectionString("DefaultConnection");
-            services.AddDbContext<DatabaseContext>(options =>
-                options.UseSqlServer(connection));
+            string connection = Configuration.GetConnectionString("PostgreSQL");
+            services.AddEntityFrameworkNpgsql()
+                    .AddDbContext<DatabaseContext>(options =>
+                        options.UseNpgsql(connection));
+            //string connection = Configuration.GetConnectionString("DefaultConnection");
+            //services.AddDbContext<DatabaseContext>(options =>
+            //    options.UseSqlServer(connection));
 
             // add connection between Users and Roles
             services.AddIdentity<User, Role>(identityOptions =>
