@@ -199,6 +199,12 @@ namespace studo
                 app.UseExceptionHandler("/Error");
             }
 
+            app.UseCors(cfg => 
+                cfg.AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowAnyOrigin()
+                .AllowCredentials());
+
             app.UseSwagger(c => { c.RouteTemplate = "api/{documentName}/swagger.json"; });
             app.UseSwaggerUI(c =>
             {
