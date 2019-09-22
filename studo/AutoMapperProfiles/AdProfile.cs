@@ -12,7 +12,9 @@ namespace studo.AutoMapperProfiles
         {
             CreateMap<AdCreateRequest, Ad>();
             CreateMap<AdEditRequest, Ad>();
-            CreateMap<Ad, AdView>();
+            CreateMap<Ad, AdView>()
+                .ForMember(av => av.Comments,
+                    map => map.MapFrom(a => a.Comments.OrderBy(com => com.CommentTime)));
             CreateMap<Ad, CompactAdView>()
                 .ForMember(cav => cav.UserName,
                     map => map.MapFrom(a => a.User.Firstname + " " + a.User.Surname))
