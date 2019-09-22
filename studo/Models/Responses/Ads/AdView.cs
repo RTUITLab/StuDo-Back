@@ -1,6 +1,7 @@
 ﻿using studo.Models.Responses.Organization;
 using studo.Models.Responses.Users;
 using System;
+using System.Collections.Generic;
 
 namespace studo.Models.Responses.Ads
 {
@@ -18,5 +19,7 @@ namespace studo.Models.Responses.Ads
         public UserView User { get; set; }
         public Guid? OrganizationId { get; set; }
         public OrganizationView Organization { get; set; }
+
+        public List<CommentView> Comments { get; set; }
     }
 }

@@ -359,6 +359,31 @@ namespace studo.Controllers.Ads
             }
         }
 
+        [HttpPost("comment/{adId:guid}")]
+        public async Task<IActionResult> AddComment(Guid adId, [FromBody] AdCommentRequest adCommentRequest)
+        {
+            try
+            {
+                await adManager.AddComment(adId, GetCurrentUserId(), adCommentRequest);
+                return Ok();
+            }
+            catch(InvalidOperationException ioe)
+            {
+                logger.LogDebug(ioe.Message + "\n" + ioe.StackTrace);
+                return NotFound("Can't find ad or user");
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound("Can't find ad ot user");
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
+
         private Guid GetCurrentUserId()
             => Guid.Parse(userManager.GetUserId(User));
     }

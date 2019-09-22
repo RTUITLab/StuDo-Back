@@ -24,6 +24,13 @@ namespace studo.Data
             ConfigureOrganizationRights(builder);
             ConfigureUserOrganization(builder);
             ConfigureUserAd(builder);
+            ConfigureComments(builder);
+        }
+
+        private void ConfigureComments(ModelBuilder builder)
+        {
+            builder.Entity<Comment>()
+                .HasKey(c => new { c.Id });
         }
 
         private void ConfigureUserAd(ModelBuilder builder)

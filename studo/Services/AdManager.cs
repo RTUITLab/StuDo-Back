@@ -179,5 +179,34 @@ namespace studo.Services
             dbContext.Ads.Update(ad);
             await dbContext.SaveChangesAsync();
         }
+
+        public async Task AddComment(Guid adId, Guid userId, AdCommentRequest adCommentRequest)
+        {
+            var user = await userManager.FindByIdAsync(userId.ToString())
+                ?? throw new ArgumentNullException();
+
+            var ad = await Ads
+                .Where(a => a.Id == adId)
+                .Include(a => a.Comments)
+                .SingleAsync()
+                ?? throw new ArgumentNullException();
+
+            ad.Comments.Add(new Comment
+            {
+                Text = adCommentRequest.Text,
+                AuthorId = user.Id,
+                Author = user,
+                AdId = ad.Id,
+                Ad = ad,
+                CommentTime = DateTime.UtcNow
+            });
+            dbContext.Ads.Update(ad);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteComment(Guid commentId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

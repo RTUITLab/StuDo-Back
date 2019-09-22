@@ -19,5 +19,6 @@ namespace studo.Models
         public Organization Organization { get; set; }
 
         public List<UserAd> Bookmarks { get; set; }
+        public List<Comment> Comments { get; set; }
     }
 }
