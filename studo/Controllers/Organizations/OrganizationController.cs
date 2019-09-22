@@ -43,7 +43,7 @@ namespace studo.Controllers.Organizations
         {
             var users = await organizationManager.Organizations
                 .SelectMany(org => org.Users)
-                .Where(u => u.OrganizationId == orgId)
+                .Where(u => u.OrganizationId == orgId && u.UserOrganizationRight.RightName != OrganizationRights.Wisher.ToString())
                 .GroupBy(u => u.User)
                 .ProjectTo<MemberView>(mapper.ConfigurationProvider)
                 .ToListAsync();
@@ -257,6 +257,44 @@ namespace studo.Controllers.Organizations
                 logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
                 return StatusCode(500);
             }
+        }
+
+        [HttpPost("wish/{orgId:guid}")]
+        public async Task<IActionResult> AddToWisherRight(Guid orgId)
+        {
+            try
+            {
+                await organizationManager.AddToWishers(orgId, GetCurrentUserId());
+                return Ok();
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound("Can't find organization, user or right");
+            }
+            catch (InvalidOperationException ioe)
+            {
+                logger.LogDebug(ioe.Message + "\n" + ioe.StackTrace);
+                return NotFound("Can't find organization, user or right");
+            }
+            catch(Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpGet("wish/{orgId:guid}")]
+        public async Task<ActionResult<IEnumerable<MemberView>>> GetAllOrganizationsWishers(Guid orgId)
+        {
+            var users = await organizationManager.Organizations
+                .SelectMany(org => org.Users)
+                .Where(u => u.OrganizationId == orgId && u.UserOrganizationRight.RightName == OrganizationRights.Wisher.ToString())
+                .GroupBy(u => u.User)
+                .ProjectTo<MemberView>(mapper.ConfigurationProvider)
+                .ToListAsync();
+
+            return Ok(users);
         }
 
         private Guid GetCurrentUserId()

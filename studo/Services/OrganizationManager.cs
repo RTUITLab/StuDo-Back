@@ -51,6 +51,9 @@ namespace studo.Services
 
             logger.LogDebug("Start adding creator to all roles");
             foreach (var right in OrganizationRights)
+            {
+                if (right.RightName == Configure.OrganizationRights.Wisher.ToString())
+                    continue;
                 newOrg.Users.Add(new UserRightsInOrganization
                 {
                     UserId = creator.Id,
@@ -60,6 +63,7 @@ namespace studo.Services
                     OrganizationId = newOrg.Id,
                     Organization = newOrg
                 });
+            }
             logger.LogDebug("End adding creator to all roles");
 
             newOrg.Ads = new List<Ad>();
@@ -292,6 +296,34 @@ namespace studo.Services
             dbContext.Organizations.Update(organization);
             await dbContext.SaveChangesAsync();
             logger.LogDebug($"Current user {userId} detached user {attachDetachRightRequest.UserId} from right {attachDetachRightRequest.Right} in organizaiton {attachDetachRightRequest.OrganizationId}");
+        }
+
+        public async Task AddToWishers(Guid organizationId, Guid userId)
+        {
+            var user = await userManager.FindByIdAsync(userId.ToString())
+                ?? throw new ArgumentNullException();
+
+            var organization = await Organizations
+                .Where(org => org.Id == organizationId)
+                .Include(org => org.Users)
+                .SingleAsync()
+                ?? throw new ArgumentNullException();
+
+            var organizationRight = await dbContext.OrganizationRights.FirstOrDefaultAsync(or => or.RightName == Configure.OrganizationRights.Wisher.ToString())
+                ?? throw new ArgumentNullException();
+
+            organization.Users.Add(new UserRightsInOrganization
+            {
+                OrganizationId = organization.Id,
+                Organization = organization,
+                UserId = user.Id,
+                User = user,
+                OrganizationRightId = organizationRight.Id,
+                UserOrganizationRight = organizationRight
+            });
+
+            dbContext.Organizations.Update(organization);
+            await dbContext.SaveChangesAsync();
         }
     }
 }
