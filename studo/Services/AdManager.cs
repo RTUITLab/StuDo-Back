@@ -73,8 +73,6 @@ namespace studo.Services
                 .Where(ad => ad.Id == newAd.Id);
         }
 
-        // TODO: check if user in organization can edit ads
-
         public async Task<IQueryable<Ad>> EditAsync(AdEditRequest adEditRequest, Guid userId)
         {
             Ad adToEdit = await Ads.FirstOrDefaultAsync(ad => ad.Id == adEditRequest.Id)
@@ -132,6 +130,53 @@ namespace studo.Services
             }
 
             dbContext.Ads.Remove(adToDelete);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task AddToBookmarks(Guid adId, Guid userId)
+        {
+            var ad = await Ads
+                .Where(adv => adv.Id == adId)
+                .Include(adv => adv.Bookmarks)
+                .SingleAsync()
+                ?? throw new ArgumentNullException();
+
+            var user = await userManager.FindByIdAsync(userId.ToString())
+                ?? throw new ArgumentNullException();
+
+            if (ad.Bookmarks.Any(b => b.Ad == ad && b.User == user))
+                throw new ArgumentException();
+
+            ad.Bookmarks.Add(new UserAd
+            {
+                UserId = user.Id,
+                User = user,
+                AdId = ad.Id,
+                Ad = ad
+            });
+
+            dbContext.Ads.Update(ad);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task RemoveFromBookmarks(Guid adId, Guid userId)
+        {
+            var ad = await Ads
+                .Where(adv => adv.Id == adId)
+                .Include(adv => adv.Bookmarks)
+                .SingleAsync()
+                ?? throw new ArgumentNullException();
+
+            var user = await userManager.FindByIdAsync(userId.ToString())
+                ?? throw new ArgumentNullException();
+
+            if (!ad.Bookmarks.Any(b => b.Ad == ad && b.User == user))
+                throw new ArgumentException();
+
+            ad.Bookmarks.Remove(
+                ad.Bookmarks.Find(b => b.Ad == ad && b.User == user));
+
+            dbContext.Ads.Update(ad);
             await dbContext.SaveChangesAsync();
         }
     }
