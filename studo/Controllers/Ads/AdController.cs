@@ -384,6 +384,37 @@ namespace studo.Controllers.Ads
             }
         }
 
+        [HttpDelete("comment/{adId:guid}/{commentId:guid}")]
+        public async Task<IActionResult> DeleteComment(Guid adId, Guid commentId)
+        {
+            try
+            {
+                await adManager.DeleteComment(adId, commentId, GetCurrentUserId());
+                return Ok();
+            }
+            catch (InvalidOperationException ioe)
+            {
+                logger.LogDebug(ioe.Message + "\n" + ioe.StackTrace);
+                return NotFound("Can't find ad, user or comment");
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound("Can't find ad, user or comment");
+            }
+            catch (MethodAccessException mae)
+            {
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"User {GetCurrentUserId()} has no rights to delete comment {commentId} in ad {adId}");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
+
         private Guid GetCurrentUserId()
             => Guid.Parse(userManager.GetUserId(User));
     }

@@ -15,6 +15,6 @@ namespace studo.Services.Interfaces
         Task AddToBookmarks(Guid adId, Guid userId);
         Task RemoveFromBookmarks(Guid adId, Guid userId);
         Task AddComment(Guid adId, Guid userId, AdCommentRequest adCommentRequest);
-        Task DeleteComment(Guid commentId);
+        Task DeleteComment(Guid adId, Guid commentId, Guid userId);
     }
 }

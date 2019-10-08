@@ -204,9 +204,42 @@ namespace studo.Services
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteComment(Guid commentId)
+        public async Task DeleteComment(Guid adId, Guid commentId, Guid userId)
         {
-            throw new NotImplementedException();
+            Ad adToEdit = await Ads
+                .Where(ad => ad.Id == adId)
+                .Include(ad => ad.Comments)
+                .SingleAsync()
+                ?? throw new ArgumentNullException();
+
+            Comment commentToDelete = adToEdit.Comments
+                .Find(com => com.Id == commentId)
+                ?? throw new ArgumentNullException();
+
+            // who can - author of comment
+            // author of ad
+            // person, with rights CanEditAd
+
+            if (adToEdit.UserId.HasValue)
+            {
+                if (adToEdit.UserId.Value != userId && commentToDelete.AuthorId != userId)
+                    throw new MethodAccessException();
+            }
+            else
+            {
+                bool hasRight = await dbContext.Organizations
+                    .Where(org => org.Id == adToEdit.OrganizationId.Value)
+                    .SelectMany(org => org.Users)
+                    .Where(u => u.UserId == userId)
+                    .AnyAsync(userorgright => userorgright.UserOrganizationRight.RightName == Configure.OrganizationRights.CanEditAd.ToString());
+
+                if (!hasRight && commentToDelete.AuthorId != userId)
+                    throw new MethodAccessException();
+            }
+
+            adToEdit.Comments.Remove(commentToDelete);
+            dbContext.Ads.Update(adToEdit);
+            await dbContext.SaveChangesAsync();
         }
     }
 }
