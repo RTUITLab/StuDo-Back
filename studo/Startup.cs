@@ -174,6 +174,9 @@ namespace studo
             // it'll automatically scan for classes which inherit from "Profile"
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+            // front files
+            services.AddSpaStaticFiles(spa => spa.RootPath = "wwwroot");
+
             services.AddMvc(options =>
             {
                 options.Filters.Add<ValidateModelAttribute>();
@@ -213,6 +216,9 @@ namespace studo
             });
 
             app.UseWebSockets();
+
+            app.UseSpaStaticFiles();
+            app.UseSpa(spa => { });
 
             var logsOptions = Configuration.GetSection(nameof(LogsOptions)).Get<LogsOptions>();
             app.UseLogsMiddleware("/api/logsStream", logsOptions.SecretKey);
