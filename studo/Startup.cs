@@ -217,9 +217,6 @@ namespace studo
 
             app.UseWebSockets();
 
-            app.UseSpaStaticFiles();
-            app.UseSpa(spa => { });
-
             var logsOptions = Configuration.GetSection(nameof(LogsOptions)).Get<LogsOptions>();
             app.UseLogsMiddleware("/api/logsStream", logsOptions.SecretKey);
 
@@ -230,6 +227,9 @@ namespace studo
 
             app.UseCookiePolicy();
             app.UseMvc();
+
+            app.UseSpaStaticFiles();
+            app.UseSpa(spa => { });
         }
     }
 }
