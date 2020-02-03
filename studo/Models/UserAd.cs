@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace studo.Models
 {
-    public class User_Ad_Starred
+    public class UserAd
     {
         public Guid UserId { get; set; }
+        public User User { get; set; }
 
         public Guid AdId { get; set; }
+        public Ad Ad { get; set; }
     }
 }

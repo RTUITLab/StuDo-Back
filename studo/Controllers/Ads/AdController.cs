@@ -288,6 +288,133 @@ namespace studo.Controllers.Ads
             }
         }
 
+        [HttpGet("bookmarks")]
+        public async Task<ActionResult<IEnumerable<CompactAdView>>> GetAllBookmarks()
+        {
+            return Ok(
+                await adManager.Ads
+                .OrderByDescending(ad => ad.EndTime)
+                .Where(ad => ad.Bookmarks.Any(b => b.UserId == GetCurrentUserId()))
+                .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
+                .ToListAsync());
+        }
+
+        [HttpPost("bookmarks/{adId:guid}")]
+        public async Task<IActionResult> AddToBookmarks(Guid adId)
+        {
+            try
+            {
+                await adManager.AddToBookmarks(adId, GetCurrentUserId());
+                return Ok();
+            }
+            catch (InvalidOperationException ioe)
+            {
+                logger.LogDebug(ioe.Message + "\n" + ioe.StackTrace);
+                return NotFound("Can't find ad or user");
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound("Can't find ad ot user");
+            }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                return BadRequest("Already in bookmarks");
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpDelete("bookmarks/{adId:guid}")]
+        public async Task<IActionResult> RemoveFromBookmarks(Guid adId)
+        {
+            try
+            {
+                await adManager.RemoveFromBookmarks(adId, GetCurrentUserId());
+                return Ok();
+            }
+            catch (InvalidOperationException ioe)
+            {
+                logger.LogDebug(ioe.Message + "\n" + ioe.StackTrace);
+                return NotFound("Can't find ad or user");
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound("Can't find ad ot user");
+            }
+            catch (ArgumentException ae)
+            {
+                logger.LogDebug(ae.Message + "\n" + ae.StackTrace);
+                return BadRequest("Already not in bookmarks");
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPost("comment/{adId:guid}")]
+        public async Task<IActionResult> AddComment(Guid adId, [FromBody] AdCommentRequest adCommentRequest)
+        {
+            try
+            {
+                await adManager.AddComment(adId, GetCurrentUserId(), adCommentRequest);
+                return Ok();
+            }
+            catch(InvalidOperationException ioe)
+            {
+                logger.LogDebug(ioe.Message + "\n" + ioe.StackTrace);
+                return NotFound("Can't find ad or user");
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound("Can't find ad ot user");
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
+
+        [HttpDelete("comment/{adId:guid}/{commentId:guid}")]
+        public async Task<IActionResult> DeleteComment(Guid adId, Guid commentId)
+        {
+            try
+            {
+                await adManager.DeleteComment(adId, commentId, GetCurrentUserId());
+                return Ok();
+            }
+            catch (InvalidOperationException ioe)
+            {
+                logger.LogDebug(ioe.Message + "\n" + ioe.StackTrace);
+                return NotFound("Can't find ad, user or comment");
+            }
+            catch (ArgumentNullException ane)
+            {
+                logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
+                return NotFound("Can't find ad, user or comment");
+            }
+            catch (MethodAccessException mae)
+            {
+                logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
+                logger.LogDebug($"User {GetCurrentUserId()} has no rights to delete comment {commentId} in ad {adId}");
+                return Forbid(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex.Message + "\n" + ex.StackTrace);
+                return StatusCode(500);
+            }
+        }
+
         private Guid GetCurrentUserId()
             => Guid.Parse(userManager.GetUserId(User));
     }

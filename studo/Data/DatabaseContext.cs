@@ -23,6 +23,30 @@ namespace studo.Data
             ConfigureResumes(builder);
             ConfigureOrganizationRights(builder);
             ConfigureUserOrganization(builder);
+            ConfigureUserAd(builder);
+            ConfigureComments(builder);
+        }
+
+        private void ConfigureComments(ModelBuilder builder)
+        {
+            builder.Entity<Comment>()
+                .HasKey(c => new { c.Id });
+        }
+
+        private void ConfigureUserAd(ModelBuilder builder)
+        {
+            builder.Entity<UserAd>()
+                .HasKey(ua => new { ua.UserId, ua.AdId });
+
+            builder.Entity<UserAd>()
+                .HasOne(ua => ua.User)
+                .WithMany(u => u.Bookmarks)
+                .HasForeignKey(ua => ua.UserId);
+
+            builder.Entity<UserAd>()
+                .HasOne(ua => ua.Ad)
+                .WithMany(u => u.Bookmarks)
+                .HasForeignKey(ua => ua.AdId);
         }
 
         private void ConfigureUserOrganization(ModelBuilder builder)

@@ -174,6 +174,9 @@ namespace studo
             // it'll automatically scan for classes which inherit from "Profile"
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
+            // front files
+            services.AddSpaStaticFiles(spa => spa.RootPath = "wwwroot");
+
             services.AddMvc(options =>
             {
                 options.Filters.Add<ValidateModelAttribute>();
@@ -199,6 +202,12 @@ namespace studo
                 app.UseExceptionHandler("/Error");
             }
 
+            app.UseCors(cfg => 
+                cfg.AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowAnyOrigin()
+                .AllowCredentials());
+
             app.UseSwagger(c => { c.RouteTemplate = "api/{documentName}/swagger.json"; });
             app.UseSwaggerUI(c =>
             {
@@ -218,6 +227,9 @@ namespace studo
 
             app.UseCookiePolicy();
             app.UseMvc();
+
+            app.UseSpaStaticFiles();
+            app.UseSpa(spa => { });
         }
     }
 }

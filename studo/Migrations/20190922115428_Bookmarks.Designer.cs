@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using studo.Data;
@@ -9,9 +10,10 @@ using studo.Data;
 namespace studo.Migrations
 {
     [DbContext(typeof(DatabaseContext))]
-    partial class DatabaseContextModelSnapshot : ModelSnapshot
+    [Migration("20190922115428_Bookmarks")]
+    partial class Bookmarks
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -126,28 +128,6 @@ namespace studo.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Ads");
-                });
-
-            modelBuilder.Entity("studo.Models.Comment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<Guid>("AdId");
-
-                    b.Property<Guid>("AuthorId");
-
-                    b.Property<DateTime>("CommentTime");
-
-                    b.Property<string>("Text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AdId");
-
-                    b.HasIndex("AuthorId");
-
-                    b.ToTable("Comment");
                 });
 
             modelBuilder.Entity("studo.Models.Organization", b =>
@@ -360,19 +340,6 @@ namespace studo.Migrations
                     b.HasOne("studo.Models.User", "User")
                         .WithMany("Ads")
                         .HasForeignKey("UserId");
-                });
-
-            modelBuilder.Entity("studo.Models.Comment", b =>
-                {
-                    b.HasOne("studo.Models.Ad", "Ad")
-                        .WithMany("Comments")
-                        .HasForeignKey("AdId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("studo.Models.User", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("studo.Models.Resume", b =>

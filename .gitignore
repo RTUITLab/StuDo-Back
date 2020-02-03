@@ -268,3 +268,6 @@ studo\.Decryptor/Decryptor\.Secret\.txt
 studo\.LogsViewer/WebSockets\.Secret\.txt
 
 /studo/Logs/
+
+studo/wwwroot/
+!studo/wwwroot/content

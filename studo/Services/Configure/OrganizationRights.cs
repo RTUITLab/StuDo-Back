@@ -7,6 +7,7 @@
         CanEditAd,
         CanEditOrganizationInformation,
         CanDeleteOrganization,
-        Member
+        Member,
+        Wisher
     }
 }

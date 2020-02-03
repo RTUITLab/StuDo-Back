@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace studo.Models
 {
@@ -16,5 +17,8 @@ namespace studo.Models
         public User User { get; set; }
         public Guid? OrganizationId { get; set; }
         public Organization Organization { get; set; }
+
+        public List<UserAd> Bookmarks { get; set; }
+        public List<Comment> Comments { get; set; }
     }
 }

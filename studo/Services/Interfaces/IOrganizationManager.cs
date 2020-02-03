@@ -14,5 +14,6 @@ namespace studo.Services.Interfaces
         Task DeleteAsync(Guid organizationId, Guid userId);
         Task AttachToRightAsync(AttachDetachRightRequest attachDetachRightRequest, Guid userId);
         Task DetachFromRightAsync(AttachDetachRightRequest attachDetachRightRequest, Guid userId);
+        Task AddToWishers(Guid organizationId, Guid userId);
     }
 }

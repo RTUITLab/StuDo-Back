@@ -73,8 +73,6 @@ namespace studo.Services
                 .Where(ad => ad.Id == newAd.Id);
         }
 
-        // TODO: check if user in organization can edit ads
-
         public async Task<IQueryable<Ad>> EditAsync(AdEditRequest adEditRequest, Guid userId)
         {
             Ad adToEdit = await Ads.FirstOrDefaultAsync(ad => ad.Id == adEditRequest.Id)
@@ -132,6 +130,115 @@ namespace studo.Services
             }
 
             dbContext.Ads.Remove(adToDelete);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task AddToBookmarks(Guid adId, Guid userId)
+        {
+            var ad = await Ads
+                .Where(adv => adv.Id == adId)
+                .Include(adv => adv.Bookmarks)
+                .SingleAsync()
+                ?? throw new ArgumentNullException();
+
+            var user = await userManager.FindByIdAsync(userId.ToString())
+                ?? throw new ArgumentNullException();
+
+            if (ad.Bookmarks.Any(b => b.Ad == ad && b.User == user))
+                throw new ArgumentException();
+
+            ad.Bookmarks.Add(new UserAd
+            {
+                UserId = user.Id,
+                User = user,
+                AdId = ad.Id,
+                Ad = ad
+            });
+
+            dbContext.Ads.Update(ad);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task RemoveFromBookmarks(Guid adId, Guid userId)
+        {
+            var ad = await Ads
+                .Where(adv => adv.Id == adId)
+                .Include(adv => adv.Bookmarks)
+                .SingleAsync()
+                ?? throw new ArgumentNullException();
+
+            var user = await userManager.FindByIdAsync(userId.ToString())
+                ?? throw new ArgumentNullException();
+
+            if (!ad.Bookmarks.Any(b => b.Ad == ad && b.User == user))
+                throw new ArgumentException();
+
+            ad.Bookmarks.Remove(
+                ad.Bookmarks.Find(b => b.Ad == ad && b.User == user));
+
+            dbContext.Ads.Update(ad);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task AddComment(Guid adId, Guid userId, AdCommentRequest adCommentRequest)
+        {
+            var user = await userManager.FindByIdAsync(userId.ToString())
+                ?? throw new ArgumentNullException();
+
+            var ad = await Ads
+                .Where(a => a.Id == adId)
+                .Include(a => a.Comments)
+                .SingleAsync()
+                ?? throw new ArgumentNullException();
+
+            ad.Comments.Add(new Comment
+            {
+                Text = adCommentRequest.Text,
+                AuthorId = user.Id,
+                Author = user,
+                AdId = ad.Id,
+                Ad = ad,
+                CommentTime = DateTime.UtcNow
+            });
+            dbContext.Ads.Update(ad);
+            await dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteComment(Guid adId, Guid commentId, Guid userId)
+        {
+            Ad adToEdit = await Ads
+                .Where(ad => ad.Id == adId)
+                .Include(ad => ad.Comments)
+                .SingleAsync()
+                ?? throw new ArgumentNullException();
+
+            Comment commentToDelete = adToEdit.Comments
+                .Find(com => com.Id == commentId)
+                ?? throw new ArgumentNullException();
+
+            // who can - author of comment
+            // author of ad
+            // person, with rights CanEditAd
+
+            if (adToEdit.UserId.HasValue)
+            {
+                if (adToEdit.UserId.Value != userId && commentToDelete.AuthorId != userId)
+                    throw new MethodAccessException();
+            }
+            else
+            {
+                bool hasRight = await dbContext.Organizations
+                    .Where(org => org.Id == adToEdit.OrganizationId.Value)
+                    .SelectMany(org => org.Users)
+                    .Where(u => u.UserId == userId)
+                    .AnyAsync(userorgright => userorgright.UserOrganizationRight.RightName == Configure.OrganizationRights.CanEditAd.ToString());
+
+                if (!hasRight && commentToDelete.AuthorId != userId)
+                    throw new MethodAccessException();
+            }
+
+            adToEdit.Comments.Remove(commentToDelete);
+            dbContext.Ads.Update(adToEdit);
             await dbContext.SaveChangesAsync();
         }
     }
