@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace studo.Models.Requests.AccountManagment
 {
-    public class ResetPasswordRequest
+    public class ResetPasswordRequestRequest
     {
         [Required]
         public Guid UserId { get; set; }

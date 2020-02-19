@@ -35,7 +35,7 @@ namespace studo.Controllers.Users
         [HttpPost("confirmEmail")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> ConfirmEmailRequestAsync([FromBody] ConfirmEmailRequest confirmEmailRequest)
+        public async Task<IActionResult> ConfirmEmailRequestAsync([FromBody] ConfirmEmailRequestRequest confirmEmailRequest)
         {
             var user = await userManager.FindByIdAsync(confirmEmailRequest.UserId.ToString());
             if (user == null)
@@ -67,7 +67,7 @@ namespace studo.Controllers.Users
         [HttpPost("resetPassword")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> ResetPasswordRequestAsync([FromBody] ResetPasswordRequest resetPasswordRequest)
+        public async Task<IActionResult> ResetPasswordRequestAsync([FromBody] ResetPasswordRequestRequest resetPasswordRequest)
         {
             var user = await userManager.FindByIdAsync(resetPasswordRequest.UserId.ToString());
             if (user == null)

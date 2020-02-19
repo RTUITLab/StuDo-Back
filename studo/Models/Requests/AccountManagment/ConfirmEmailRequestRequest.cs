@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace studo.Models.Requests.AccountManagment
 {
-    public class ConfirmEmailRequest
+    public class ConfirmEmailRequestRequest
     {
         [Required]
         public Guid UserId { get; set; }
