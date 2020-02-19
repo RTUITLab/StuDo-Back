@@ -28,13 +28,13 @@ namespace studo
                 .UseSerilog((context, configuration) =>
                 {
                     configuration
-                        .MinimumLevel.Debug()
+                        .MinimumLevel.Information()
                         .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                         .Enrich.FromLogContext()
                         .WriteTo.File(path: Path.Combine("Logs", "log-.txt"),
                             rollingInterval: RollingInterval.Day,
                             outputTemplate: "{Timestamp:d MMM HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-                            restrictedToMinimumLevel: LogEventLevel.Debug)
+                            restrictedToMinimumLevel: LogEventLevel.Information)
                         .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
                             theme: AnsiConsoleTheme.Literate)
                             .WriteTo.Providers(Providers);
