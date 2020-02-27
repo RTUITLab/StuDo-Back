@@ -30,7 +30,7 @@ namespace studo.Services
         public async Task SendResetPasswordEmail(string email, string redirectUrl)
         {
             var message = (await GetResetPasswordTemplateAsync())
-                .Replace("%url%", $"{ HtmlEncoder.Default.Encode(redirectUrl)}");
+                .Replace("%url%", $"{HtmlEncoder.Default.Encode(redirectUrl)}");
             await SendEmailAsync(email, "Восстановление пароля", message);
         }
 
