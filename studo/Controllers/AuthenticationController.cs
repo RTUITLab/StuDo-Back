@@ -73,7 +73,7 @@ namespace studo.Controllers
             if (result.Succeeded)
             {
                 var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
-                var callbackUrl = $"https://{Request.Host}/Acceptation?userId={user.Id}&token={emailConfirmationToken}";
+                var callbackUrl = $"https://{Request.Host}/Logged#/Acceptation?userId={user.Id}&token={emailConfirmationToken}";
 
                 await emailSender.SendEmailConfirmationAsync(user.Email, callbackUrl);
 

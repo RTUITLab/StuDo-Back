@@ -63,10 +63,12 @@ namespace studo.Controllers.Users
         /// <returns>All is ok</returns>
         /// <response code="200">Password was reset successfully</response>
         /// <response code="400">Invalid token or user</response>
+        /// <response code="404">User wasn't found</response>
         [AllowAnonymous]
         [HttpPost("resetPassword")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> ResetPasswordRequestAsync([FromBody] ResetPasswordRequestRequest resetPasswordRequest)
         {
             var user = await userManager.FindByIdAsync(resetPasswordRequest.UserId.ToString());
