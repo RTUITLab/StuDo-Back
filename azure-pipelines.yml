@@ -4,7 +4,7 @@ trigger:
 
 name: $(BuildID)
 pool:
-  name: Default
+  vmImage: 'ubuntu-latest'
 steps:
 - task: DotNetCoreCLI@2
   displayName: 'dotnet restore'
