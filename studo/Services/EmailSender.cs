@@ -6,6 +6,7 @@ using MailKit.Net.Smtp;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using MimeKit;
+using MailKit.Security;
 
 namespace studo.Services
 {
@@ -47,8 +48,11 @@ namespace studo.Services
 
             using (var client = new SmtpClient())
             {
-                await client.ConnectAsync(options.SmtpHost, options.SmtpPort, false);
+                await client.ConnectAsync(options.SmtpHost, options.SmtpPort, SecureSocketOptions.StartTls);
                 await client.AuthenticateAsync(options.Email, options.Password);
+                client.ServerCertificateValidationCallback = (mysender, certificate, chain, sslPolicyErrors) => { return true; };
+                client.CheckCertificateRevocation = false;
+
                 await client.SendAsync(mailMessage);
 
                 await client.DisconnectAsync(true);
