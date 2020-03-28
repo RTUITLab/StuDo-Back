@@ -49,9 +49,8 @@ namespace studo.Services
             using (var client = new SmtpClient())
             {
                 await client.ConnectAsync(options.SmtpHost, options.SmtpPort, SecureSocketOptions.StartTls);
+                client.AuthenticationMechanisms.Remove("XOAUTH2");
                 await client.AuthenticateAsync(options.Email, options.Password);
-                client.ServerCertificateValidationCallback = (mysender, certificate, chain, sslPolicyErrors) => { return true; };
-                client.CheckCertificateRevocation = false;
 
                 await client.SendAsync(mailMessage);
 
