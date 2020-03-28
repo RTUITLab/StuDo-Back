@@ -47,7 +47,7 @@ namespace studo.Services
 
             using (var client = new SmtpClient())
             {
-                await client.ConnectAsync(options.SmtpHost, options.SmtpPort, true);
+                await client.ConnectAsync(options.SmtpHost, options.SmtpPort, false);
                 await client.AuthenticateAsync(options.Email, options.Password);
                 await client.SendAsync(mailMessage);
 
