@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
 using studo.Models.Options;
 using studo.Services.Interfaces;
-using System.Net;
 using System.Net.Http;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using MimeKit;
 
 namespace studo.Services
 {
@@ -36,24 +36,23 @@ namespace studo.Services
 
         private async Task SendEmailAsync(string email, string subject, string message)
         {
-            MailMessage mailMessage = new MailMessage
-            {
-                From = new MailAddress(options.Email),
-                IsBodyHtml = true
-            };
-            mailMessage.To.Add(new MailAddress(email));
+            MimeMessage mailMessage = new MimeMessage();
+            mailMessage.From.Add(new MailboxAddress(options.Email));
+            mailMessage.To.Add(new MailboxAddress(email));
             mailMessage.Subject = subject;
-            mailMessage.Body = message;
-
-            SmtpClient smtpClient = new SmtpClient
+            mailMessage.Body = new TextPart(MimeKit.Text.TextFormat.Html)
             {
-                Host = options.SmtpHost,
-                Port = options.SmtpPort,
-                EnableSsl = true,
-                Credentials = new NetworkCredential(options.Email, options.Password)
+                Text = message
             };
 
-            await smtpClient.SendMailAsync(mailMessage);
+            using (var client = new SmtpClient())
+            {
+                await client.ConnectAsync(options.SmtpHost, options.SmtpPort, true);
+                await client.AuthenticateAsync(options.Email, options.Password);
+                await client.SendAsync(mailMessage);
+
+                await client.DisconnectAsync(true);
+            }
         }
 
         private Task<string> GetConfirmEmailTemplateAsync()
