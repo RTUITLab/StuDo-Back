@@ -151,6 +151,16 @@ namespace studo
                         };
                 });
 
+            // Cors
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials());
+            });
+
             // swagger configuration
             services.AddSwaggerGen(c =>
             {
@@ -202,11 +212,7 @@ namespace studo
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseCors(cfg => 
-                cfg.AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowAnyOrigin()
-                .AllowCredentials());
+            app.UseCors("CorsPolicy");
 
             app.UseSwagger(c => { c.RouteTemplate = "api/{documentName}/swagger.json"; });
             app.UseSwaggerUI(c =>
