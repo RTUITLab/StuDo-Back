@@ -10,6 +10,7 @@ steps:
   displayName: 'dotnet restore'
   inputs:
     command: 'restore'
+    restoreArguments: '--interactive'
     feedsToUse: 'select'
     versioningScheme: 'off'
 - task: DotNetCoreCLI@2
