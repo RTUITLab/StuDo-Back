@@ -29,6 +29,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.IO;
+using RTUITLab.EmailService.Client;
 
 namespace studo
 {
@@ -47,7 +48,7 @@ namespace studo
             // add options to project
             services.Configure<FillDbOptions>(Configuration.GetSection(nameof(FillDbOptions)));
             services.Configure<JwtOptions>(Configuration.GetSection(nameof(JwtOptions)));
-            services.Configure<EmailSenderOptions>(Configuration.GetSection(nameof(EmailSenderOptions)));
+            services.Configure<EmailSenderOptionsExtended>(Configuration.GetSection(nameof(EmailSenderOptionsExtended)));
             services.Configure<LogsOptions>(Configuration.GetSection(nameof(LogsOptions)));
 
             // cookie configuration
@@ -85,14 +86,18 @@ namespace studo
                     };
                 });
 
+            // Add email service
+            services.AddEmailSender(Configuration
+                .GetSection(nameof(EmailSenderOptionsExtended))
+                .Get<EmailSenderOptionsExtended>());
             // Add http client factory
-            services.AddHttpClient<IEmailSender, EmailSender>();
+            services.AddHttpClient<Services.Interfaces.IEmailSender, EmailSender>();
 
             // Add transients for interfaces
             services.AddTransient<IJwtFactory, JwtFactory>();
             services.AddTransient<IAdManager, AdManager>();
             services.AddTransient<IOrganizationManager, OrganizationManager>();
-            services.AddTransient<IEmailSender, EmailSender>();
+            services.AddTransient<Services.Interfaces.IEmailSender, EmailSender>();
             services.AddSingleton<ILogsWebSocketHandler>(LogsWebSocketHandler.Instance);
 
             // add database context
