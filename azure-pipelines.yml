@@ -7,11 +7,11 @@ pool:
   vmImage: 'ubuntu-latest'
 steps:
 - task: DotNetCoreCLI@2
-  displayName: 'dotnet restore'
   inputs:
     command: 'restore'
     restoreArguments: '--interactive'
-    feedsToUse: 'select'
+    feedsToUse: 'config'
+    nugetConfigPath: 'nuget.config'
     versioningScheme: 'off'
 - task: DotNetCoreCLI@2
   displayName: 'dotnet publish'
