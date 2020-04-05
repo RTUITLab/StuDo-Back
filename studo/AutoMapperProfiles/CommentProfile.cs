@@ -13,7 +13,7 @@ namespace studo.AutoMapperProfiles
             CreateMap<Comment, CommentView>()
                 .ForMember(cv => cv.Author, map => map.MapFrom(c => c.Author.Surname + " " + c.Author.Firstname));
             CreateMap<Comment, CompactCommentView>()
-                .ForMember(ccv => ccv.Text, map => map.MapFrom(c => c.Text.Substring(0, 10)))
+                .ForMember(ccv => ccv.Text, map => map.MapFrom(c => c.Text.Substring(0, 10).Trim()))
                 .ForMember(ccv => ccv.Author, map => map.MapFrom(c => c.Author.Surname + " " + c.Author.Firstname));
         }
     }
