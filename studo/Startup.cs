@@ -201,7 +201,12 @@ namespace studo
                      .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
                 options.MaxModelValidationErrors = 50;
-            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            })
+                .AddJsonOptions(opt =>
+                {
+                    opt.SerializerSettings.DateFormatString = "yyyy-MM-ddTHH:mm:ss.fff";
+                })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
