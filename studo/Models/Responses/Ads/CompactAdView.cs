@@ -17,6 +17,8 @@ namespace studo.Models.Responses.Ads
         public Guid? OrganizationId { get; set; }
         public string OrganizationName { get; set; }
 
+        public bool IsFavorite { get; set; }
+
         public CompactCommentView LastComment { get; set; }
     }
 }

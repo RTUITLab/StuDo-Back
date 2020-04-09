@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using studo.Extensions;
 using studo.Models;
 using studo.Models.Requests.Ads;
 using studo.Models.Responses.Ads;
@@ -71,6 +72,7 @@ namespace studo.Controllers.Ads
 
             return Ok(
                 await ads
+                .AttachCurrentUserId(mapper.ConfigurationProvider, GetCurrentUserId())
                 .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
                 .ToListAsync());
         }
@@ -104,6 +106,7 @@ namespace studo.Controllers.Ads
 
             return Ok(
                 await ads
+                .AttachCurrentUserId(mapper.ConfigurationProvider, GetCurrentUserId())
                 .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
                 .ToListAsync());
         }
@@ -123,6 +126,7 @@ namespace studo.Controllers.Ads
             return Ok(
                 await adManager.Ads
                 .OrderByDescending(ad => ad.EndTime)
+                .AttachCurrentUserId(mapper.ConfigurationProvider, GetCurrentUserId())
                 .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
                 .ToListAsync());
         }
@@ -146,6 +150,7 @@ namespace studo.Controllers.Ads
             {
                 var createdAd = await adManager.AddAsync(adCreateRequest, currentUserId);
                 AdView newAd = await createdAd
+                    .AttachCurrentUserId(mapper.ConfigurationProvider, GetCurrentUserId())
                     .ProjectTo<AdView>(mapper.ConfigurationProvider)
                     .SingleAsync();
 
@@ -197,6 +202,7 @@ namespace studo.Controllers.Ads
             {
                 var editedAd = await adManager.EditAsync(adEditRequest, currentUserId);
                 return Ok(await editedAd
+                    .AttachCurrentUserId(mapper.ConfigurationProvider, GetCurrentUserId())
                     .ProjectTo<AdView>(mapper.ConfigurationProvider)
                     .SingleAsync());
             }
@@ -271,6 +277,7 @@ namespace studo.Controllers.Ads
             try
             {
                 AdView adView = await adManager.Ads
+                    .AttachCurrentUserId(mapper.ConfigurationProvider, GetCurrentUserId())
                     .ProjectTo<AdView>(mapper.ConfigurationProvider)
                     .FirstOrDefaultAsync(ad => ad.Id == adId)
                     ?? throw new ArgumentNullException();
@@ -295,6 +302,7 @@ namespace studo.Controllers.Ads
                 await adManager.Ads
                 .OrderByDescending(ad => ad.EndTime)
                 .Where(ad => ad.Bookmarks.Any(b => b.UserId == GetCurrentUserId()))
+                .AttachCurrentUserId(mapper.ConfigurationProvider, GetCurrentUserId())
                 .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
                 .ToListAsync());
         }
