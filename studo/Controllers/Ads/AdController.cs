@@ -123,12 +123,14 @@ namespace studo.Controllers.Ads
             if (adManager.Ads.Count() == 0)
                 return Ok(new List<CompactAdView>());
 
+            var now = DateTime.UtcNow;
             return Ok(
                 await adManager.Ads
-                .OrderByDescending(ad => ad.EndTime)
-                .AttachCurrentUserId(mapper.ConfigurationProvider, GetCurrentUserId())
-                .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
-                .ToListAsync());
+                    .Where(ad => ad.EndTime > now)
+                    .OrderByDescending(ad => ad.CreationTime)
+                    .AttachCurrentUserId(mapper.ConfigurationProvider, GetCurrentUserId())
+                    .ProjectTo<CompactAdView>(mapper.ConfigurationProvider)
+                    .ToListAsync());
         }
 
         /// <summary>
