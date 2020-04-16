@@ -181,7 +181,7 @@ namespace studo.Services
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task AddComment(Guid adId, Guid userId, AdCommentRequest adCommentRequest)
+        public async Task<Comment> AddComment(Guid adId, Guid userId, AdCommentRequest adCommentRequest)
         {
             var user = await userManager.FindByIdAsync(userId.ToString())
                 ?? throw new ArgumentNullException();
@@ -192,7 +192,7 @@ namespace studo.Services
                 .SingleAsync()
                 ?? throw new ArgumentNullException();
 
-            ad.Comments.Add(new Comment
+            var newComment = new Comment
             {
                 Text = adCommentRequest.Text,
                 AuthorId = user.Id,
@@ -200,9 +200,13 @@ namespace studo.Services
                 AdId = ad.Id,
                 Ad = ad,
                 CommentTime = DateTime.UtcNow
-            });
+            };
+
+            ad.Comments.Add(newComment);
             dbContext.Ads.Update(ad);
             await dbContext.SaveChangesAsync();
+
+            return newComment;
         }
 
         public async Task DeleteComment(Guid adId, Guid commentId, Guid userId)

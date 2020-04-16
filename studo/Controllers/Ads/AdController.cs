@@ -315,7 +315,7 @@ namespace studo.Controllers.Ads
             try
             {
                 await adManager.AddToBookmarks(adId, GetCurrentUserId());
-                return Ok();
+                return Ok(adId);
             }
             catch (InvalidOperationException ioe)
             {
@@ -345,7 +345,7 @@ namespace studo.Controllers.Ads
             try
             {
                 await adManager.RemoveFromBookmarks(adId, GetCurrentUserId());
-                return Ok();
+                return Ok(adId);
             }
             catch (InvalidOperationException ioe)
             {
@@ -374,8 +374,8 @@ namespace studo.Controllers.Ads
         {
             try
             {
-                await adManager.AddComment(adId, GetCurrentUserId(), adCommentRequest);
-                return Ok();
+                var newComment = await adManager.AddComment(adId, GetCurrentUserId(), adCommentRequest);
+                return Ok(mapper.Map<CommentView>(newComment));
             }
             catch(InvalidOperationException ioe)
             {
@@ -400,7 +400,7 @@ namespace studo.Controllers.Ads
             try
             {
                 await adManager.DeleteComment(adId, commentId, GetCurrentUserId());
-                return Ok();
+                return Ok(commentId);
             }
             catch (InvalidOperationException ioe)
             {

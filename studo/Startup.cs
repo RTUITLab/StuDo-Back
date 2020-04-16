@@ -83,6 +83,8 @@ namespace studo
                         IssuerSigningKey = jwtOptions.SymmetricSecurityKey,
                         // validation of security key
                         ValidateIssuerSigningKey = true,
+
+                        RequireExpirationTime = true,
                     };
                 });
 
