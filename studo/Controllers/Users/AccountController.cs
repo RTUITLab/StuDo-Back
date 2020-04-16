@@ -55,11 +55,7 @@ namespace studo.Controllers.Users
                 return BadRequest($"User with email {resetPasswordRequest.Email} doesn't exist");
 
             var resetPassToken = await userManager.GeneratePasswordResetTokenAsync(user);
-            var callbackUrl = Url.Page(
-                "/Account/ResetPassword",
-                pageHandler: null,
-                values: new { userId = user.Id, token = resetPassToken },
-                protocol: Request.Scheme);
+            var callbackUrl = $"https://{Request.Host}/Logged#/PassReset?userId={user.Id}&token={resetPassToken}";
 
             await emailSender.SendResetPasswordEmail(resetPasswordRequest.Email, callbackUrl);
             return Ok();

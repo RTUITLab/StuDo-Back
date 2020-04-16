@@ -9,7 +9,9 @@ namespace studo.Models.Options
         public string SecretKey { get; set; }
         public string Audience { get; set; }
         public string Issuer { get; set; }
-        public TimeSpan LifeTime { get; set; }
+        public TimeSpan RefreshTokenLifeTime { get; set; }
+        public TimeSpan AccessTokenLifeTime { get; set; }
+
         public SigningCredentials SigningCredentials =>
             new SigningCredentials(new SymmetricSecurityKey(Encoding.ASCII.GetBytes(SecretKey)), SecurityAlgorithms.HmacSha256);
         public SymmetricSecurityKey SymmetricSecurityKey =>

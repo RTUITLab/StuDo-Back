@@ -11,6 +11,7 @@ namespace studo.Data
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<Resume> Resumes { get; set; }
         public DbSet<OrganizationRight> OrganizationRights { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         public DatabaseContext(DbContextOptions options) : base (options) {}
 
@@ -25,6 +26,8 @@ namespace studo.Data
             ConfigureUserOrganization(builder);
             ConfigureUserAd(builder);
             ConfigureComments(builder);
+
+            ConfigureRefreshToken(builder);
         }
 
         private void ConfigureComments(ModelBuilder builder)
@@ -102,6 +105,18 @@ namespace studo.Data
         {
             builder.Entity<Ad>()
                 .HasKey(ad => new { ad.Id });
+        }
+
+        private void ConfigureRefreshToken(ModelBuilder builder)
+        {
+            builder.Entity<RefreshToken>(cfg =>
+            {
+                cfg.HasKey(rt => new { rt.Token, rt.UserId });
+
+                cfg.HasOne(rt => rt.User)
+                    .WithMany(u => u.RefreshTokens)
+                    .HasForeignKey(rt => rt.UserId);
+            });
         }
     }
 }

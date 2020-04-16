@@ -29,6 +29,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.IO;
+using RTUITLab.EmailService.Client;
 
 namespace studo
 {
@@ -47,7 +48,7 @@ namespace studo
             // add options to project
             services.Configure<FillDbOptions>(Configuration.GetSection(nameof(FillDbOptions)));
             services.Configure<JwtOptions>(Configuration.GetSection(nameof(JwtOptions)));
-            services.Configure<EmailSenderOptions>(Configuration.GetSection(nameof(EmailSenderOptions)));
+            services.Configure<EmailSenderOptionsExtended>(Configuration.GetSection(nameof(EmailSenderOptionsExtended)));
             services.Configure<LogsOptions>(Configuration.GetSection(nameof(LogsOptions)));
 
             // cookie configuration
@@ -85,14 +86,18 @@ namespace studo
                     };
                 });
 
+            // Add email service
+            services.AddEmailSender(Configuration
+                .GetSection(nameof(EmailSenderOptionsExtended))
+                .Get<EmailSenderOptionsExtended>());
             // Add http client factory
-            services.AddHttpClient<IEmailSender, EmailSender>();
+            services.AddHttpClient<Services.Interfaces.IEmailSender, EmailSender>();
 
             // Add transients for interfaces
             services.AddTransient<IJwtFactory, JwtFactory>();
             services.AddTransient<IAdManager, AdManager>();
             services.AddTransient<IOrganizationManager, OrganizationManager>();
-            services.AddTransient<IEmailSender, EmailSender>();
+            services.AddTransient<Services.Interfaces.IEmailSender, EmailSender>();
             services.AddSingleton<ILogsWebSocketHandler>(LogsWebSocketHandler.Instance);
 
             // add database context
@@ -151,6 +156,15 @@ namespace studo
                         };
                 });
 
+            // Cors
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader());
+            });
+
             // swagger configuration
             services.AddSwaggerGen(c =>
             {
@@ -187,7 +201,12 @@ namespace studo
                      .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
                 options.MaxModelValidationErrors = 50;
-            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            })
+                .AddJsonOptions(opt =>
+                {
+                    opt.SerializerSettings.DateFormatString = "yyyy-MM-ddTHH:mm:ss.fff";
+                })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -202,11 +221,7 @@ namespace studo
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseCors(cfg => 
-                cfg.AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowAnyOrigin()
-                .AllowCredentials());
+            app.UseCors("CorsPolicy");
 
             app.UseSwagger(c => { c.RouteTemplate = "api/{documentName}/swagger.json"; });
             app.UseSwaggerUI(c =>

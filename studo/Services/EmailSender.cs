@@ -1,59 +1,36 @@
 ﻿using Microsoft.Extensions.Options;
 using studo.Models.Options;
-using studo.Services.Interfaces;
-using System.Net;
 using System.Net.Http;
-using System.Net.Mail;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 
 namespace studo.Services
 {
-    public class EmailSender : IEmailSender
+    public class EmailSender : Interfaces.IEmailSender
     {
-        private readonly EmailSenderOptions options;
+        private readonly EmailSenderOptionsExtended options;
         private readonly HttpClient httpClient;
+        private readonly RTUITLab.EmailService.Client.IEmailSender sender;
 
-        public EmailSender(IOptions<EmailSenderOptions> options, IHttpClientFactory httpClientFactory)
+        public EmailSender(IOptions<EmailSenderOptionsExtended> options, IHttpClientFactory httpClientFactory, RTUITLab.EmailService.Client.IEmailSender sender)
         {
             this.options = options.Value;
             this.httpClient = httpClientFactory.CreateClient();
+            this.sender = sender;
         }
 
         public async Task SendEmailConfirmationAsync(string email, string redirectUrl)
         {
             var message = (await GetConfirmEmailTemplateAsync())
                 .Replace("%url%", $"{HtmlEncoder.Default.Encode(redirectUrl)}");
-            await SendEmailAsync(email, "Подтвердите почту", message);
+            await sender.SendEmailAsync(email, "Подтвердите почту", message);
         }
 
         public async Task SendResetPasswordEmail(string email, string redirectUrl)
         {
             var message = (await GetResetPasswordTemplateAsync())
-                .Replace("%url%", $"{ HtmlEncoder.Default.Encode(redirectUrl)}");
-            await SendEmailAsync(email, "Восстановление пароля", message);
-        }
-
-        private async Task SendEmailAsync(string email, string subject, string message)
-        {
-            MailMessage mailMessage = new MailMessage
-            {
-                From = new MailAddress(options.Email),
-                IsBodyHtml = true
-            };
-            mailMessage.To.Add(new MailAddress(email));
-            mailMessage.Subject = subject;
-            mailMessage.Body = message;
-
-            SmtpClient smtpClient = new SmtpClient
-            {
-                Host = options.SmtpHost,
-                Port = options.SmtpPort,
-                EnableSsl = true,
-                Credentials = new NetworkCredential(options.Email, options.Password)
-            };
-
-            await smtpClient.SendMailAsync(mailMessage);
+                .Replace("%url%", $"{HtmlEncoder.Default.Encode(redirectUrl)}");
+            await sender.SendEmailAsync(email, "Восстановление пароля", message);
         }
 
         private Task<string> GetConfirmEmailTemplateAsync()

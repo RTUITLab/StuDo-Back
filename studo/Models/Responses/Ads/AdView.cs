@@ -20,6 +20,8 @@ namespace studo.Models.Responses.Ads
         public Guid? OrganizationId { get; set; }
         public OrganizationView Organization { get; set; }
 
+        public bool IsFavorite { get; set; }
+
         public List<CommentView> Comments { get; set; }
     }
 }

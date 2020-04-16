@@ -67,6 +67,7 @@ namespace studo.Services
                 newAd.User = creator;
             }
 
+            newAd.CreationTime = DateTime.UtcNow;
             await dbContext.Ads.AddAsync(newAd);
             await dbContext.SaveChangesAsync();
             return dbContext.Ads
