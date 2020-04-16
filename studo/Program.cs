@@ -33,9 +33,9 @@ namespace studo
                         .Enrich.FromLogContext()
                         .WriteTo.File(path: Path.Combine("Logs", "log-.txt"),
                             rollingInterval: RollingInterval.Day,
-                            outputTemplate: "{Timestamp:d MMM HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
+                            outputTemplate: "{Timestamp:d MMM yyyy HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
                             restrictedToMinimumLevel: LogEventLevel.Information)
-                        .WriteTo.Console(outputTemplate: "{Timestamp:HH:mm:ss} {Level:w3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
+                        .WriteTo.Console(outputTemplate: "{Timestamp:d MMM HH:mm:ss} {Level:w3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
                             theme: AnsiConsoleTheme.Literate)
                             .WriteTo.Providers(Providers);
                 });
