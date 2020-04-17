@@ -195,9 +195,13 @@ namespace studo.Controllers
             if (dbToken == null)
                 return NotFound("Refresh token couldn't be found.");
 
+            if (!CheckToken(dbToken.Token))
+            {
+                context.RefreshTokens.Remove(dbToken);
+                await context.SaveChangesAsync();
+                return BadRequest("Refresh token is invalid and was deleted from database.");
+            }
             var user = await ReadUserFromRefreshToken(dbToken.Token);
-            context.RefreshTokens.Remove(dbToken);
-            await context.SaveChangesAsync();
 
             return Ok(
                 await GetLoginResponseAsync(user)
@@ -217,6 +221,12 @@ namespace studo.Controllers
             context.RefreshTokens.Add(refreshToken);
             await context.SaveChangesAsync();
             return token;
+        }
+
+        private bool CheckToken(string token)
+        {
+            var decodedJwt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(token);
+            return decodedJwt.ValidTo > DateTime.UtcNow;
         }
 
         private async Task<User> ReadUserFromRefreshToken(string token)
