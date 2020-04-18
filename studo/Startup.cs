@@ -78,11 +78,12 @@ namespace studo
                         ValidAudience = jwtOptions.Audience,
                         // do we need to validate time of existence
                         ValidateLifetime = true,
-
                         // setting security key
                         IssuerSigningKey = jwtOptions.SymmetricSecurityKey,
                         // validation of security key
                         ValidateIssuerSigningKey = true,
+
+                        RequireExpirationTime = true,
                     };
                 });
 
@@ -94,7 +95,7 @@ namespace studo
             services.AddHttpClient<Services.Interfaces.IEmailSender, EmailSender>();
 
             // Add transients for interfaces
-            services.AddTransient<IJwtFactory, JwtFactory>();
+            services.AddTransient<IJwtManager, JwtManager>();
             services.AddTransient<IAdManager, AdManager>();
             services.AddTransient<IOrganizationManager, OrganizationManager>();
             services.AddTransient<Services.Interfaces.IEmailSender, EmailSender>();

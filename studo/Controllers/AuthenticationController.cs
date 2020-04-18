@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -8,12 +7,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using studo.Data;
 using studo.Models;
-using studo.Models.Options;
 using studo.Models.Requests.Authentication;
 using studo.Models.Responses.Authentication;
 using studo.Models.Responses.Users;
@@ -33,25 +28,20 @@ namespace studo.Controllers
         private readonly UserManager<User> userManager;
         private readonly IMapper mapper;
         private readonly ILogger<AuthenticationController> logger;
-        private readonly IJwtFactory jwtFactory;
+        private readonly IJwtManager jwtManager;
         private readonly IEmailSender emailSender;
         private readonly IHostingEnvironment env;
-        private readonly DatabaseContext context;
-        private readonly TimeSpan RefreshTokenLifeTime;
 
         public AuthenticationController(UserManager<User> userManager, IMapper mapper,
-            ILogger<AuthenticationController> logger, IJwtFactory jwtFactory,
-            IEmailSender emailSender, IHostingEnvironment env, DatabaseContext context,
-            IOptions<JwtOptions> jwtOptions)
+            ILogger<AuthenticationController> logger, IJwtManager jwtManager,
+            IEmailSender emailSender, IHostingEnvironment env)
         {
             this.userManager = userManager;
             this.mapper = mapper;
             this.logger = logger;
-            this.jwtFactory = jwtFactory;
+            this.jwtManager = jwtManager;
             this.emailSender = emailSender;
             this.env = env;
-            this.context = context;
-            RefreshTokenLifeTime = jwtOptions.Value.RefreshTokenLifeTime;
         }
 
         /// <summary>
@@ -135,8 +125,8 @@ namespace studo.Controllers
             return new LoginResponse
             {
                 User = mapper.Map<UserView>(user),
-                AccessToken = jwtFactory.GenerateAccessToken(user.Id, userRoles),
-                RefreshToken = await SaveAndGetRefreshTokenAsync(user)
+                AccessToken = jwtManager.GenerateAccessToken(user.Id, userRoles),
+                RefreshToken = await jwtManager.SaveAndGetRefreshTokenAsync(user)
             };
         }
 
@@ -188,42 +178,22 @@ namespace studo.Controllers
         [HttpPost("refresh")]
         public async Task<ActionResult<LoginResponse>> RefreshAsync([FromBody] RefreshTokenRequest request)
         {
-            var dbToken = await context.RefreshTokens
-                .Where(rt => rt.Token == request.RefreshToken)
-                .SingleOrDefaultAsync();
+            var dbToken = await jwtManager.FindRefreshTokenAsync(request.RefreshToken);
 
             if (dbToken == null)
                 return NotFound("Refresh token couldn't be found.");
 
-            var user = await ReadUserFromRefreshToken(dbToken.Token);
-            context.RefreshTokens.Remove(dbToken);
-            await context.SaveChangesAsync();
+            if (!jwtManager.CheckTokenExpireTime(dbToken.Token))
+            {
+                await jwtManager.DeleteRefreshTokenAsync(dbToken);
+                return BadRequest("Refresh token is invalid and was deleted from database.");
+            }
+            var user = await jwtManager.GetUserFromTokenAsync(dbToken.Token);
+            await jwtManager.DeleteRefreshTokenAsync(dbToken);
 
             return Ok(
                 await GetLoginResponseAsync(user)
             );
-        }
-
-        private async Task<string> SaveAndGetRefreshTokenAsync(User user)
-        {
-            var token = jwtFactory.GenerateRefreshToken(user.Id);
-            var refreshToken = new RefreshToken
-            {
-                User = user,
-                UserId = user.Id,
-                Token = token,
-                ExpireTime = DateTime.UtcNow + RefreshTokenLifeTime
-            };
-            context.RefreshTokens.Add(refreshToken);
-            await context.SaveChangesAsync();
-            return token;
-        }
-
-        private async Task<User> ReadUserFromRefreshToken(string token)
-        {
-            var decodedJwt = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().ReadJwtToken(token);
-            var claim = decodedJwt.Claims.ToList().FirstOrDefault(cl => cl.Type == System.Security.Claims.ClaimTypes.NameIdentifier);
-            return await userManager.FindByIdAsync(claim.Value);
         }
 
         private Guid GetCurrentUserId()

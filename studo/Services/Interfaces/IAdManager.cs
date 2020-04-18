@@ -14,7 +14,7 @@ namespace studo.Services.Interfaces
         Task DeleteAsync(Guid adId, Guid userId);
         Task AddToBookmarks(Guid adId, Guid userId);
         Task RemoveFromBookmarks(Guid adId, Guid userId);
-        Task AddComment(Guid adId, Guid userId, AdCommentRequest adCommentRequest);
+        Task<Comment> AddComment(Guid adId, Guid userId, AdCommentRequest adCommentRequest);
         Task DeleteComment(Guid adId, Guid commentId, Guid userId);
     }
 }
