@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace studo.Models.Responses.Users
 {
@@ -12,5 +9,6 @@ namespace studo.Models.Responses.Users
         public string Description { get; set; }
 
         public string UserName { get; set; }
+        public Guid UserId { get; set; }
     }
 }

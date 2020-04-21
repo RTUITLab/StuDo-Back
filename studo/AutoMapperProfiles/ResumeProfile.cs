@@ -13,7 +13,7 @@ namespace studo.AutoMapperProfiles
             CreateMap<EditResumeRequest, Resume>();
             CreateMap<Resume, ResumeView>();
             CreateMap<Resume, CompactResumeView>()
-                .ForMember(crv => crv.UserName, map => map.MapFrom(r => r.User.Firstname + " " + r.User.Surname));
+                .ForMember(crv => crv.UserName, map => map.MapFrom(r => r.User.Surname + " " + r.User.Firstname));
         }
     }
 }
