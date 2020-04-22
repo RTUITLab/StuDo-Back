@@ -297,7 +297,13 @@ namespace studo.Controllers.Ads
             }
         }
 
+        /// <summary>
+        /// Get current user bookmarks
+        /// </summary>
+        /// <returns>User's bookmarks</returns>
+        /// <response code="200">User's bookmarks</response>
         [HttpGet("bookmarks")]
+        [ProducesResponseType(200)]
         public async Task<ActionResult<IEnumerable<CompactAdView>>> GetAllBookmarks()
         {
             return Ok(
@@ -309,7 +315,18 @@ namespace studo.Controllers.Ads
                 .ToListAsync());
         }
 
+        /// <summary>
+        /// Add ad to current user bookmark list
+        /// </summary>
+        /// <param name="adId"></param>
+        /// <returns>Ad was added to bookmark. Every thing is correct</returns>
+        /// <response code="200">Ad was added to current user bookmark list</response>
+        /// <response code="400">Ad is already in bookmark list</response>
+        /// <response code="404">Current user or requested ad wasn't found</response>
         [HttpPost("bookmarks/{adId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> AddToBookmarks(Guid adId)
         {
             try
@@ -339,7 +356,18 @@ namespace studo.Controllers.Ads
             }
         }
 
+        /// <summary>
+        /// Remove ad from current user bookmark list
+        /// </summary>
+        /// <param name="adId"></param>
+        /// <returns>Ad was removed from bookmark. Every thing is correct</returns>
+        /// <response code="200">Ad was removed from current user bookmark list</response>
+        /// <response code="400">Ad is already not in bookmark list</response>
+        /// <response code="404">Current user or requested ad wasn't found</response>
         [HttpDelete("bookmarks/{adId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> RemoveFromBookmarks(Guid adId)
         {
             try
@@ -369,7 +397,17 @@ namespace studo.Controllers.Ads
             }
         }
 
+        /// <summary>
+        /// Add a comment to an ad
+        /// </summary>
+        /// <param name="adId"></param>
+        /// <param name="adCommentRequest"></param>
+        /// <returns>Comment was added to an ad</returns>
+        /// <response code="200">Comment was added to an ad. Every thing is ok</response>
+        /// <response code="404">Current user or requested ad wasn't found</response>
         [HttpPost("comment/{adId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> AddComment(Guid adId, [FromBody] AdCommentRequest adCommentRequest)
         {
             try
@@ -394,7 +432,19 @@ namespace studo.Controllers.Ads
             }
         }
 
+        /// <summary>
+        /// Remove a comment from an ad
+        /// </summary>
+        /// <param name="adId"></param>
+        /// <param name="commentId"></param>
+        /// <returns>Comment was added to an ad</returns>
+        /// <response code="200">Comment was removed from an ad. Every thing is ok</response>
+        /// <response code="403">Current user has no rights to remove this comment</response>
+        /// <response code="404">Current user or requested ad/comment wasn't found</response>
         [HttpDelete("comment/{adId:guid}/{commentId:guid}")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(403)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> DeleteComment(Guid adId, Guid commentId)
         {
             try

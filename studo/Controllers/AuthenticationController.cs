@@ -174,8 +174,19 @@ namespace studo.Controllers
             }
         }
 
+        /// <summary>
+        /// Get new pair of tokens (accesss and refresh) by refresh token
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>New refresh and access token + user info</returns>
+        /// <response code="200">If pair was successfully updated</response>
+        /// <response code="400">If refresh token is invalid (this response code cause a deleting token from database)</response>
+        /// <response code="404">If refresh token wasn't found</response>
         [AllowAnonymous]
         [HttpPost("refresh")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<ActionResult<LoginResponse>> RefreshAsync([FromBody] RefreshTokenRequest request)
         {
             var dbToken = await jwtManager.FindRefreshTokenAsync(request.RefreshToken);
