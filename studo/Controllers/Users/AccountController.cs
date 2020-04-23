@@ -43,16 +43,16 @@ namespace studo.Controllers.Users
         /// <param name="resetPasswordRequest"></param>
         /// <returns>All is ok</returns>
         /// <response code="200">Recover email was successfully sent</response>
-        /// <response code="400">Can't find user</response>
+        /// <response code="404">Can't find user</response>
         [AllowAnonymous]
         [HttpPost("password/reset")]
         [ProducesResponseType(200)]
-        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> ResetPaswwordAsync ([FromBody] ResetPasswordRequest resetPasswordRequest)
         {
             var user = await userManager.FindByEmailAsync(resetPasswordRequest.Email);
             if (user == null)
-                return BadRequest($"User with email {resetPasswordRequest.Email} doesn't exist");
+                return NotFound($"User with email {resetPasswordRequest.Email} doesn't exist");
 
             var resetPassToken = await userManager.GeneratePasswordResetTokenAsync(user);
             var callbackUrl = $"https://{Request.Host}/Logged#/PassReset?userId={user.Id}&token={resetPassToken}";
@@ -87,7 +87,7 @@ namespace studo.Controllers.Users
             if (!await userManager.CheckPasswordAsync(user, changePasswordRequest.OldPassword))
                 return BadRequest("Old password doesn't match current password");
 
-            if (changePasswordRequest.NewPassword.Equals(changePasswordRequest.OldPassword))
+            if (await userManager.CheckPasswordAsync(user, changePasswordRequest.NewPassword))
                 return BadRequest("New password can't match old password");
 
             var result = await userManager.ChangePasswordAsync(user, changePasswordRequest.OldPassword, changePasswordRequest.NewPassword);
