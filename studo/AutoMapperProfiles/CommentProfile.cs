@@ -11,10 +11,10 @@ namespace studo.AutoMapperProfiles
         {
             CreateMap<AdCommentRequest, Comment>();
             CreateMap<Comment, CommentView>()
-                .ForMember(cv => cv.Author, map => map.MapFrom(c => c.Author.Surname + " " + c.Author.Firstname));
+                .ForMember(cv => cv.Author, map => map.MapFrom(c => c.Author.Firstname + " " + c.Author.Surname));
             CreateMap<Comment, CompactCommentView>()
                 .ForMember(ccv => ccv.Text, map => map.MapFrom(c => c.Text.Substring(0, 10).Trim()))
-                .ForMember(ccv => ccv.Author, map => map.MapFrom(c => c.Author.Surname + " " + c.Author.Firstname));
+                .ForMember(ccv => ccv.Author, map => map.MapFrom(c => c.Author.Firstname + " " + c.Author.Surname));
         }
     }
 }
