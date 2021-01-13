@@ -271,3 +271,5 @@ studo\.LogsViewer/WebSockets\.Secret\.txt
 
 studo/wwwroot/
 !studo/wwwroot/content
+
+Deploy/Build/
