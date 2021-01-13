@@ -23,7 +23,7 @@ namespace studo
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration(cfg => cfg.AddJsonFile("appsettings.Secret.json"))
+                .ConfigureAppConfiguration(cfg => cfg.AddJsonFile("appsettings.Secret.json", true))
                 .UseStartup<Startup>()
                 .UseSerilog((context, configuration) =>
                 {

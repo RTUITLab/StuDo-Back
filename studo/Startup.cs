@@ -88,9 +88,16 @@ namespace studo
                 });
 
             // Add email service
-            services.AddEmailSender(Configuration
-                .GetSection(nameof(EmailSenderOptionsExtended))
-                .Get<EmailSenderOptionsExtended>());
+            if (Configuration.GetValue<bool>("USE_DEBUG_EMAIL_SENDER"))
+            {
+                services.AddTransient<RTUITLab.EmailService.Client.IEmailSender, DebugEmailSender>();
+            }
+            else
+            {
+                services.AddEmailSender(Configuration
+                    .GetSection(nameof(EmailSenderOptionsExtended))
+                    .Get<EmailSenderOptionsExtended>());
+            }
             // Add http client factory
             services.AddHttpClient<Services.Interfaces.IEmailSender, EmailSender>();
 
@@ -190,7 +197,7 @@ namespace studo
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             // front files
-            services.AddSpaStaticFiles(spa => spa.RootPath = "wwwroot");
+            // services.AddSpaStaticFiles(spa => spa.RootPath = "wwwroot");
 
             services.AddMvc(options =>
             {
@@ -244,8 +251,8 @@ namespace studo
             app.UseCookiePolicy();
             app.UseMvc();
 
-            app.UseSpaStaticFiles();
-            app.UseSpa(spa => { });
+            // app.UseSpaStaticFiles();
+            // app.UseSpa(spa => { });
         }
     }
 }
