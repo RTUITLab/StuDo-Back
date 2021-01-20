@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
 using Serilog.Extensions.Logging;
@@ -21,23 +22,26 @@ namespace studo
             host.Run();
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration(cfg => cfg.AddJsonFile("appsettings.Secret.json", true))
-                .UseStartup<Startup>()
-                .UseSerilog((context, configuration) =>
+        public static IHostBuilder CreateWebHostBuilder(string[] args) =>
+            Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    configuration
-                        .MinimumLevel.Information()
-                        .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
-                        .Enrich.FromLogContext()
-                        .WriteTo.File(path: Path.Combine("Logs", "log-.txt"),
-                            rollingInterval: RollingInterval.Day,
-                            outputTemplate: "{Timestamp:d MMM yyyy HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-                            restrictedToMinimumLevel: LogEventLevel.Information)
-                        .WriteTo.Console(outputTemplate: "{Timestamp:d MMM HH:mm:ss} {Level:w3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
-                            theme: AnsiConsoleTheme.Literate)
-                            .WriteTo.Providers(Providers);
+                    webBuilder.ConfigureAppConfiguration(cfg => cfg.AddJsonFile("appsettings.Secret.json", true));
+                    webBuilder.UseStartup<Startup>();
+                    webBuilder.UseSerilog((context, configuration) =>
+                    {
+                        configuration
+                            .MinimumLevel.Information()
+                            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                            .Enrich.FromLogContext()
+                            .WriteTo.File(path: Path.Combine("Logs", "log-.txt"),
+                                rollingInterval: RollingInterval.Day,
+                                outputTemplate: "{Timestamp:d MMM yyyy HH:mm:ss} {Level:u3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
+                                restrictedToMinimumLevel: LogEventLevel.Information)
+                            .WriteTo.Console(outputTemplate: "{Timestamp:d MMM HH:mm:ss} {Level:w3}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}",
+                                theme: AnsiConsoleTheme.Literate)
+                                .WriteTo.Providers(Providers);
+                    });
                 });
     }
 }

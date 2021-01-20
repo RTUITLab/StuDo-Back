@@ -14,10 +14,9 @@ using studo.Services.Configure;
 using WebApp.Configure.Models;
 using WebApp.Configure.Models.Invokations;
 using AutoMapper;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.Extensions.Hosting;
 using studo.Services.Autorize;
 using studo.Services;
 using studo.Services.Interfaces;
@@ -30,6 +29,8 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.IO;
 using RTUITLab.EmailService.Client;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 namespace studo
 {
@@ -59,6 +60,57 @@ namespace studo
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+
+            // Add email service
+            if (Configuration.GetValue<bool>("USE_DEBUG_EMAIL_SENDER"))
+            {
+                services.AddTransient<RTUITLab.EmailService.Client.IEmailSender, DebugEmailSender>();
+            }
+            else
+            {
+                services.AddEmailSender(Configuration
+                    .GetSection(nameof(EmailSenderOptionsExtended))
+                    .Get<EmailSenderOptionsExtended>());
+            }
+            // Add http client factory
+            services.AddHttpClient<Services.Interfaces.IEmailSender, EmailSender>();
+
+            // Add transients for interfaces
+            services.AddTransient<IJwtManager, JwtManager>();
+            services.AddTransient<IAdManager, AdManager>();
+            services.AddTransient<IOrganizationManager, OrganizationManager>();
+            services.AddTransient<Services.Interfaces.IEmailSender, EmailSender>();
+            services.AddSingleton<ILogsWebSocketHandler>(LogsWebSocketHandler.Instance);
+
+            // add database context
+            string connection = Configuration.GetConnectionString("PostgreSQL");
+            services.AddEntityFrameworkNpgsql()
+                    .AddDbContext<DatabaseContext>(options =>
+                        options.UseNpgsql(connection));
+
+            // add connection between Users and Roles
+            services.AddIdentity<User, Role>(identityOptions =>
+                {
+                    // configure identity options
+                    identityOptions.Password.RequireDigit = false;
+                    identityOptions.Password.RequireLowercase = false;
+                    identityOptions.Password.RequireUppercase = false;
+                    identityOptions.Password.RequireNonAlphanumeric = false;
+                    identityOptions.Password.RequiredLength = 6;
+
+                    identityOptions.SignIn.RequireConfirmedEmail = true;
+
+                    identityOptions.User.AllowedUserNameCharacters =
+                        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.@+";
+
+                    identityOptions.User.RequireUniqueEmail = true;
+
+                    identityOptions.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(0);
+                    identityOptions.Lockout.MaxFailedAccessAttempts = 100;
+                })
+                .AddEntityFrameworkStores<DatabaseContext>()
+                .AddDefaultTokenProviders();
+
             // JWT configuration
             var jwtOptions = Configuration.GetSection(nameof(JwtOptions)).Get<JwtOptions>();
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -87,59 +139,6 @@ namespace studo
                     };
                 });
 
-            // Add email service
-            if (Configuration.GetValue<bool>("USE_DEBUG_EMAIL_SENDER"))
-            {
-                services.AddTransient<RTUITLab.EmailService.Client.IEmailSender, DebugEmailSender>();
-            }
-            else
-            {
-                services.AddEmailSender(Configuration
-                    .GetSection(nameof(EmailSenderOptionsExtended))
-                    .Get<EmailSenderOptionsExtended>());
-            }
-            // Add http client factory
-            services.AddHttpClient<Services.Interfaces.IEmailSender, EmailSender>();
-
-            // Add transients for interfaces
-            services.AddTransient<IJwtManager, JwtManager>();
-            services.AddTransient<IAdManager, AdManager>();
-            services.AddTransient<IOrganizationManager, OrganizationManager>();
-            services.AddTransient<Services.Interfaces.IEmailSender, EmailSender>();
-            services.AddSingleton<ILogsWebSocketHandler>(LogsWebSocketHandler.Instance);
-
-            // add database context
-            string connection = Configuration.GetConnectionString("PostgreSQL");
-            services.AddEntityFrameworkNpgsql()
-                    .AddDbContext<DatabaseContext>(options =>
-                        options.UseNpgsql(connection));
-            //string connection = Configuration.GetConnectionString("DefaultConnection");
-            //services.AddDbContext<DatabaseContext>(options =>
-            //    options.UseSqlServer(connection));
-
-            // add connection between Users and Roles
-            services.AddIdentity<User, Role>(identityOptions =>
-                {
-                    // configure identity options
-                    identityOptions.Password.RequireDigit = false;
-                    identityOptions.Password.RequireLowercase = false;
-                    identityOptions.Password.RequireUppercase = false;
-                    identityOptions.Password.RequireNonAlphanumeric = false;
-                    identityOptions.Password.RequiredLength = 6;
-
-                    identityOptions.SignIn.RequireConfirmedEmail = true;
-
-                    identityOptions.User.AllowedUserNameCharacters =
-                        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.@+";
-
-                    identityOptions.User.RequireUniqueEmail = true;
-
-                    identityOptions.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(0);
-                    identityOptions.Lockout.MaxFailedAccessAttempts = 100;
-                })
-                .AddEntityFrameworkStores<DatabaseContext>()
-                .AddDefaultTokenProviders();
-
             // add cookie authentication
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -164,6 +163,14 @@ namespace studo
                         };
                 });
 
+            services.AddAuthorization(options =>
+            {
+                options.DefaultPolicy = new AuthorizationPolicyBuilder()
+                  .RequireAuthenticatedUser()
+                  .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme)
+                  .Build();
+            });
+
             // Cors
             services.AddCors(options =>
             {
@@ -177,7 +184,7 @@ namespace studo
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1",
-                    new Info
+                    new Microsoft.OpenApi.Models.OpenApiInfo
                     {
                         Title = "StuDo develop API",
                         Version = "v1"
@@ -199,26 +206,20 @@ namespace studo
             // front files
             // services.AddSpaStaticFiles(spa => spa.RootPath = "wwwroot");
 
-            services.AddMvc(options =>
+            services.AddControllers(options =>
             {
                 options.Filters.Add<ValidateModelAttribute>();
                 options.Filters.Add<IgnoreAntiforgeryTokenAttribute>(1001);
-                var policy = new AuthorizationPolicyBuilder()
-                     .RequireAuthenticatedUser()
-                     .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme)
-                     .Build();
-                options.Filters.Add(new AuthorizeFilter(policy));
                 options.MaxModelValidationErrors = 50;
             })
-                .AddJsonOptions(opt =>
+                .AddNewtonsoftJson(options =>
                 {
-                    opt.SerializerSettings.DateFormatString = "yyyy-MM-ddTHH:mm:ss.fff";
-                })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+                    options.SerializerSettings.DateFormatString = "yyyy-MM-ddTHH:mm:ss.fff";
+                });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -229,7 +230,6 @@ namespace studo
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseCors("CorsPolicy");
 
             app.UseSwagger(c => { c.RouteTemplate = "api/{documentName}/swagger.json"; });
             app.UseSwaggerUI(c =>
@@ -246,10 +246,17 @@ namespace studo
             app.UseWebAppConfigure(); // locks the app, while functions isn't completed
 
             app.UseStaticFiles();
-            app.UseAuthentication();
 
-            app.UseCookiePolicy();
-            app.UseMvc();
+            app.UseRouting();
+            app.UseCors("CorsPolicy");
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(cfg =>
+            {
+                cfg.MapControllers().RequireAuthorization();
+            });
 
             // app.UseSpaStaticFiles();
             // app.UseSpa(spa => { });

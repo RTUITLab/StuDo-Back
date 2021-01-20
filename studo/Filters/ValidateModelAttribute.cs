@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
@@ -63,7 +62,7 @@ namespace studo.Filters
         private string BodyToString(HttpRequest request)
         {
             var returnValue = string.Empty;
-            request.EnableRewind();
+            request.EnableBuffering();
             //ensure we read from the begining of the stream - in case a reader failed to read to end before us.
             request.Body.Position = 0;
             //use the leaveOpen parameter as true so further reading and processing of the request body can be done down the pipeline
