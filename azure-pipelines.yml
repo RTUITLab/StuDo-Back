@@ -2,9 +2,27 @@ trigger:
   - develop
   - master
 
-name: $(BuildID)
+name: $(BuildID)-$(Build.SourceBranchName)
 pool:
   vmImage: 'ubuntu-latest'
+
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+    buildImage: true
+    deployService: true
+    deployEnvironment: development
+    imageTags: |
+      $(Build.BuildId)
+      develop
+    serviceName: studo-develop_back
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    buildImage: true
+    deployService: true
+    deployEnvironment: production
+    imageTags: |
+      $(Build.BuildId)
+      latest
+    serviceName: studo_back
 
 stages:
 - stage: build
@@ -20,7 +38,7 @@ stages:
         artifact: studo-back-build
 - stage: packDocker
   displayName: pack Docker image
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+  condition: ${{variables.buildImage}}
   jobs:
   - job: packBuild
     steps:
@@ -33,6 +51,24 @@ stages:
           command: 'buildAndPush'
           Dockerfile: '$(Pipeline.Workspace)/studo-back-build/Dockerfile'
           buildContext: '$(Pipeline.Workspace)/studo-back-build'
-          tags: |
-            $(Build.BuildId)
-            lastest
+          tags: ${{variables.imageTags}}
+- stage: deploy
+  displayName: deploy
+  condition: ${{variables.deployService}}
+  jobs:
+    - deployment: Deploy
+      displayName: Deploy
+      pool:
+        vmImage: 'ubuntu-latest'
+      environment: 'production'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - download: none
+              - task: SSH@0
+                inputs:
+                  sshEndpoint: 'swarm manager'
+                  runOptions: 'commands'
+                  commands: 'docker service update --image rtuitlab/studo-back:$(Build.BuildId) ${{variables.serviceName}}'
+                  readyTimeout: '20000'
