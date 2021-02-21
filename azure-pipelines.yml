@@ -60,7 +60,7 @@ stages:
       displayName: Deploy
       pool:
         vmImage: 'ubuntu-latest'
-      environment: 'production'
+      environment: ${{variables.deployEnvironment}}
       strategy:
         runOnce:
           deploy:
