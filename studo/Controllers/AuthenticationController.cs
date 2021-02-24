@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
 using studo.Models;
 using studo.Models.Requests.Authentication;
 using studo.Models.Responses.Authentication;
@@ -30,11 +31,11 @@ namespace studo.Controllers
         private readonly ILogger<AuthenticationController> logger;
         private readonly IJwtManager jwtManager;
         private readonly IEmailSender emailSender;
-        private readonly IHostingEnvironment env;
+        private readonly IWebHostEnvironment env;
 
         public AuthenticationController(UserManager<User> userManager, IMapper mapper,
             ILogger<AuthenticationController> logger, IJwtManager jwtManager,
-            IEmailSender emailSender, IHostingEnvironment env)
+            IEmailSender emailSender, IWebHostEnvironment env)
         {
             this.userManager = userManager;
             this.mapper = mapper;

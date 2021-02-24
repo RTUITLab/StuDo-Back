@@ -2,41 +2,73 @@ trigger:
   - develop
   - master
 
-name: $(BuildID)
+name: $(BuildID)-$(Build.SourceBranchName)
 pool:
   vmImage: 'ubuntu-latest'
-steps:
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'restore'
-    restoreArguments: '--interactive'
-    feedsToUse: 'config'
-    nugetConfigPath: 'nuget.config'
-    versioningScheme: 'off'
-- task: DotNetCoreCLI@2
-  displayName: 'dotnet publish'
-  inputs:
-    command: publish
-    publishWebProjects: false
-    projects: studo/studo.csproj
-    arguments: '--no-restore -o $(Build.ArtifactStagingDirectory)' 
-    zipAfterPublish: false
-    modifyOutputPath: false
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: stu-do-back-build'
-  inputs:
-    ArtifactName: 'stu-do-back-build'
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'develop') }}:
+    buildImage: true
+    deployService: true
+    deployEnvironment: development
+    imageTags: |
+      $(Build.BuildId)
+      develop
+    serviceName: studo-develop_back
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    buildImage: true
+    deployService: true
+    deployEnvironment: production
+    imageTags: |
+      $(Build.BuildId)
+      latest
+    serviceName: studo_back
 
-- task: CopyFiles@2
-  displayName: 'copy deploy artifact'
-  inputs:
-    SourceFolder: 'Deploy'
-    Contents: '**'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
-    CleanTargetFolder: true
-
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: stu-do-back-deploy'
-  inputs:
-    ArtifactName: 'stu-do-back-deploy'
+stages:
+- stage: build
+  displayName: Build
+  jobs:
+  - job: buildBack
+    steps:
+      - task: Bash@3
+        displayName: Build
+        inputs:
+          filePath: 'build.sh'
+      - publish: Deploy
+        artifact: studo-back-build
+- stage: packDocker
+  displayName: pack Docker image
+  condition: ${{variables.buildImage}}
+  jobs:
+  - job: packBuild
+    steps:
+      - download: current
+        artifact: studo-back-build
+      - task: Docker@2
+        inputs:
+          containerRegistry: 'rtuitlab connection by admin'
+          repository: 'rtuitlab/studo-back'
+          command: 'buildAndPush'
+          Dockerfile: '$(Pipeline.Workspace)/studo-back-build/Dockerfile'
+          buildContext: '$(Pipeline.Workspace)/studo-back-build'
+          tags: ${{variables.imageTags}}
+- stage: deploy
+  displayName: deploy
+  condition: ${{variables.deployService}}
+  jobs:
+    - deployment: Deploy
+      displayName: Deploy
+      pool:
+        vmImage: 'ubuntu-latest'
+      environment: ${{variables.deployEnvironment}}
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - download: none
+              - task: SSH@0
+                inputs:
+                  sshEndpoint: 'swarm manager'
+                  runOptions: 'commands'
+                  commands: 'docker service update --image rtuitlab/studo-back:$(Build.BuildId) ${{variables.serviceName}}'
+                  readyTimeout: '20000'

@@ -1,8 +1,9 @@
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 
 WORKDIR /app
 
-COPY StuDo-Back/stu-do-back-build .
-COPY StuDo-Front/stu-do-front-build ./wwwroot/
+COPY Build .
+
+ENV ASPNETCORE_URLS=http://*:5301
 
 ENTRYPOINT ["dotnet", "studo.dll"]
