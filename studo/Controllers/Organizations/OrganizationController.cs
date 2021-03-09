@@ -41,12 +41,17 @@ namespace studo.Controllers.Organizations
         [HttpGet("members/{orgId:guid}")]
         public async Task<ActionResult<IEnumerable<MemberView>>> GetAllOrganizationsUsers(Guid orgId)
         {
-            var users = await organizationManager.Organizations
+            var wisherRight = OrganizationRights.Wisher.ToString();
+            var users = (await organizationManager.Organizations
+                .Where(org => org.Id == orgId)
                 .SelectMany(org => org.Users)
-                .Where(u => u.OrganizationId == orgId && u.UserOrganizationRight.RightName != OrganizationRights.Wisher.ToString())
+                .Include(u => u.User)
+                .Include(u => u.UserOrganizationRight)
+                .Where(u => u.UserOrganizationRight.RightName != wisherRight)
+                .ToListAsync())
                 .GroupBy(u => u.User)
-                .ProjectTo<MemberView>(mapper.ConfigurationProvider)
-                .ToListAsync();
+                .Select(g => mapper.Map<MemberView>(g))
+                .ToList();
 
             return Ok(users);
         }
@@ -287,12 +292,17 @@ namespace studo.Controllers.Organizations
         [HttpGet("wish/{orgId:guid}")]
         public async Task<ActionResult<IEnumerable<MemberView>>> GetAllOrganizationsWishers(Guid orgId)
         {
-            var users = await organizationManager.Organizations
+            var wisherRight = OrganizationRights.Wisher.ToString();
+            var users = (await organizationManager.Organizations
+                .Where(org => org.Id == orgId)
                 .SelectMany(org => org.Users)
-                .Where(u => u.OrganizationId == orgId && u.UserOrganizationRight.RightName == OrganizationRights.Wisher.ToString())
+                .Include(u => u.User)
+                .Include(u => u.UserOrganizationRight)
+                .Where(u => u.UserOrganizationRight.RightName == wisherRight)
+                .ToListAsync())
                 .GroupBy(u => u.User)
-                .ProjectTo<MemberView>(mapper.ConfigurationProvider)
-                .ToListAsync();
+                .Select(g => mapper.Map<MemberView>(g))
+                .ToList();
 
             return Ok(users);
         }
