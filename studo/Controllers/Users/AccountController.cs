@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using studo.Models;
@@ -11,6 +12,7 @@ using studo.Models.Requests.Users;
 using studo.Models.Responses.Users;
 using studo.Services.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace studo.Controllers.Users
@@ -48,14 +50,21 @@ namespace studo.Controllers.Users
         [HttpPost("password/reset")]
         [ProducesResponseType(200)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> ResetPaswwordAsync ([FromBody] ResetPasswordRequest resetPasswordRequest)
+        public async Task<IActionResult> ResetPaswwordAsync([FromBody] ResetPasswordRequest resetPasswordRequest)
         {
             var user = await userManager.FindByEmailAsync(resetPasswordRequest.Email);
             if (user == null)
                 return NotFound($"User with email {resetPasswordRequest.Email} doesn't exist");
 
             var resetPassToken = await userManager.GeneratePasswordResetTokenAsync(user);
-            var callbackUrl = $"https://{Request.Host}/Logged#/PassReset?userId={user.Id}&token={resetPassToken}";
+
+            var qparams = new Dictionary<string, string>()
+            {
+                { "userId", user.Id.ToString() },
+                { "token", resetPassToken.ToString() },
+                { "password", "true" }
+            };
+            var callbackUrl = QueryHelpers.AddQueryString($"https://{Request.Host}/acceptation", qparams);
 
             await emailSender.SendResetPasswordEmail(resetPasswordRequest.Email, callbackUrl);
             return Ok();
@@ -73,7 +82,7 @@ namespace studo.Controllers.Users
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> ChangePasswordAsync ([FromBody] ChangePasswordRequest changePasswordRequest)
+        public async Task<IActionResult> ChangePasswordAsync([FromBody] ChangePasswordRequest changePasswordRequest)
         {
             // TODO: IF IT WASN'T YOU PLEASE GO HERE TO RESET PASSWORD
             // send email that your password was reseted!!!
@@ -168,12 +177,12 @@ namespace studo.Controllers.Users
                     return StatusCode(500);
                 }
             }
-            catch(ArgumentNullException ane)
+            catch (ArgumentNullException ane)
             {
                 logger.LogDebug(ane.Message + "\n" + ane.StackTrace);
                 return NotFound($"Can't find current user");
             }
-            catch(MethodAccessException mae)
+            catch (MethodAccessException mae)
             {
                 logger.LogDebug(mae.Message + "\n" + mae.StackTrace);
                 logger.LogDebug($"User {GetCurrentUserId()} can't change {changeUserInformationRequest.Id} user information");
@@ -213,11 +222,13 @@ namespace studo.Controllers.Users
                     throw new ArgumentException();
 
                 string emailConfirmationToken = await userManager.GenerateChangeEmailTokenAsync(currentUser, changeEmailRequest.NewEmail);
-                var callbackUrl = Url.Page(
-                    "/Account/ConfirmEmail",
-                    pageHandler: null,
-                    values: new { userId = changeEmailRequest.Id, token = emailConfirmationToken, newEmail = changeEmailRequest.NewEmail },
-                    protocol: "https");
+                var qparams = new Dictionary<string, string>()
+                {
+                    { "userId", changeEmailRequest.Id.ToString() },
+                    { "token", emailConfirmationToken.ToString() },
+                    { "newEmail", changeEmailRequest.NewEmail }
+                };
+                var callbackUrl = QueryHelpers.AddQueryString($"https://{Request.Host}/acceptation", qparams);
 
                 await emailSender.SendEmailConfirmationAsync(changeEmailRequest.NewEmail, callbackUrl);
                 return Ok();

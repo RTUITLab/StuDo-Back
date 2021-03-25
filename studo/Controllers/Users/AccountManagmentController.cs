@@ -44,6 +44,7 @@ namespace studo.Controllers.Users
             if (!string.IsNullOrEmpty(confirmEmailRequest.NewEmail))
             {
                 var result = await userManager.ChangeEmailAsync(user, confirmEmailRequest.NewEmail, confirmEmailRequest.Token);
+                await userManager.SetUserNameAsync(user, confirmEmailRequest.NewEmail);
                 if (result.Succeeded)
                     return Ok();
             }

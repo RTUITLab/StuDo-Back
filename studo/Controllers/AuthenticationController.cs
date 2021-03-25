@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
 using studo.Models;
@@ -16,6 +17,7 @@ using studo.Models.Responses.Users;
 using studo.Services.Autorize;
 using studo.Services.Configure;
 using studo.Services.Interfaces;
+using System.Collections.Generic;
 
 namespace studo.Controllers
 {
@@ -64,7 +66,6 @@ namespace studo.Controllers
 
             user = mapper.Map<User>(userRegistrationRequest);
             user.UserName = user.Email;
-
             var result = await userManager.CreateAsync(user, userRegistrationRequest.Password);
 
             // add default 'user' role to created user
@@ -75,7 +76,13 @@ namespace studo.Controllers
             if (result.Succeeded)
             {
                 var emailConfirmationToken = await userManager.GenerateEmailConfirmationTokenAsync(user);
-                var callbackUrl = $"https://{Request.Host}/Logged#/Acceptation?userId={user.Id}&token={emailConfirmationToken}";
+
+                var qparams = new Dictionary<string, string>()
+                {
+                    { "userId", user.Id.ToString() },
+                    { "token", emailConfirmationToken.ToString() }
+                };
+                var callbackUrl = QueryHelpers.AddQueryString($"https://{Request.Host}/acceptation", qparams);
 
                 await emailSender.SendEmailConfirmationAsync(user.Email, callbackUrl);
 
